@@ -1,17 +1,18 @@
 classdef slave_clock < wrclock
     methods
-        function obj = slave_clock(init_time, freq_error)
-            obj@wrclock(init_time, freq_error);
+        function obj = slave_clock(nom_freq, drift_ppb, jitter_std)
+            obj@wrclock(nom_freq, drift_ppb, jitter_std);
         end
 
-        function obj = adjust_phase(obj, correction)
-            % Apply a time correction (e.g., from servo)
-            obj.time = obj.time + correction;
+        function syntonize(obj, new_freq)
+            % Override frequency as if synchronized via SyncE
+            obj.frequency = new_freq;
         end
 
-        function obj = adjust_frequency(obj, freq_correction)
-            % Apply frequency correction (simulate SyncE / PLL)
-            obj.frequency_error = obj.frequency_error + freq_correction;
+        function apply_offset(obj, offset_s)
+            % Convert offset in seconds to cycles and directly apply it
+            cycle_shift = offset_s * obj.nominal_freq;
+            obj.cycle_count = obj.cycle_count + cycle_shift;
         end
     end
 end

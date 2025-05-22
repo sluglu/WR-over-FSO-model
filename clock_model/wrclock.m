@@ -1,30 +1,41 @@
-classdef wrclock
-    %wrclock Virtual wrclock for White Rabbit simulation
+classdef wrclock < handle
     properties
-        time           % Current time of the wrclock (seconds)
-        Tref           % Nominal tick period (seconds) - e.g., 8e-9 s
-        frequency_error % Relative frequency error (e.g., 50e-6 for 50 ppm)
+        frequency       % [Hz] - actual oscillator frequency, updated by syntonization
+        nominal_freq    % [Hz] - target frequency (e.g., 125 MHz for WR)
+        drift_ppb       % frequency drift (static error) in ppb
+        jitter_std      % jitter (random) in seconds
+        cycle_count = 0 % double clock cycles elapsed
     end
 
     methods
-        function obj = wrclock(init_time, frequency_error)
-            obj.time = init_time;
-            obj.frequency_error = frequency_error;
+        function obj = wrclock(nom_freq, drift_ppb, jitter_std)
+            obj.nominal_freq = nom_freq;
+            obj.drift_ppb = drift_ppb;
+            obj.jitter_std = jitter_std;
+
+            % initial frequency drift 
+            obj.frequency = nom_freq * (1 + obj.drift_ppb * 1e-9);
         end
 
-        function obj = wait(obj, delay_s)
-        %WAIT Advance the clock by a real-world delay
-            obj.time = obj.time + delay_s * (1 + obj.frequency_error);
+        function tick(obj, sim_dt)
+            obj.cycle_count = obj.cycle_count + obj.frequency * sim_dt;
+            obj.frequency = obj.nominal_freq * (1 + obj.drift_ppb * 1e-9);
         end
 
         function t = get_time(obj)
-            % Read current time
-            t = obj.time;
+            % Time as measured by clock cycles
+            jitter = randn * obj.jitter_std;
+            t = round(obj.cycle_count) / obj.nominal_freq + jitter;
         end
 
-        function t = get_frequency_error(obj)
-            % Read current time
-            t = obj.frequency_error;
+        function t = get_time_raw(obj)
+            % For internal debugging and phase detector (DDMTD)
+            jitter = randn * obj.jitter_std;
+            t = obj.cycle_count / obj.nominal_freq + jitter;
+        end
+
+        function reset(obj)
+            obj.cycle_count = 0;
         end
     end
 end
