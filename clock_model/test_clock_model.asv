@@ -4,11 +4,11 @@ clear; clc;
 
 % === Parameters ===
 nominal_freq = 125e6;   % Standard WR clock = 125 MHz
-sim_duration = 10;      % total time = 10 s
+sim_duration = 10e-3;      % total time = 10 ms
 drift_ppb = 100;        % slave clock drift = 100 ppb
 jitter_std = 20e-12;    % WR DMTD has ~20 ps RMS noise floor
 
-sim_dt = 1e-3;                      % Simulation time step
+sim_dt = 1e-6;                      % Simulation time step
 correction_interval = 100e-3;       % Apply correction every 100 ms
 
 % Create clocks
@@ -55,10 +55,9 @@ end
 u = n1 + n2;
 while u < n1 + n2 + n3
     %slave.apply_freq_correction(master.frequency - slave.frequency); 
-    if mod(u, ci) == 0
+    if mod(ci, u) == 0
         offset_est = slave.get_time_raw() - master.get_time_raw();
         slave.apply_offset_correction(-offset_est); % Simulate WR offset correction every cycle
-        disp(u*sim_dt);
     end
     advance_clocks(master, slave, sim_dt);
     time_error(u) = 1e9 * (slave.get_time_raw() - master.get_time_raw());

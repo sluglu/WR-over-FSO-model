@@ -17,7 +17,16 @@ classdef wrclock < handle
             obj.frequency = nom_freq * (1 + obj.drift_ppb * 1e-9);
         end
 
-        function tick(obj, sim_dt)
+        % function tick(obj, sim_dt)
+        %     obj.cycle_count = obj.cycle_count + obj.frequency * sim_dt;
+        %     obj.frequency = obj.nominal_freq * (1 + obj.drift_ppb * 1e-9);
+        % end
+
+        function tick(obj, sim_dt, callback)
+             % Execute optional callback function
+            if nargin > 1 && isa(callback, 'function_handle')
+        callback(obj); % Pass clock object to callback
+    end
             % Advance the clock time by 1 tick, applying drift
             obj.frequency = obj.nominal_freq * (1 + obj.drift_ppb * 1e-9);
             obj.cycle_count = obj.cycle_count + obj.frequency * sim_dt;

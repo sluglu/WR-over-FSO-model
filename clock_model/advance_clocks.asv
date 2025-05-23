@@ -6,8 +6,10 @@ function advance_clocks(varargin)
 
     duration = varargin{end};
     clocks = varargin(1:end-1);  % all but the last arg
-
+       
     for k = 1:numel(clocks)
+        n_cycles = 
+        for i =
         clocks{k}.tick(duration);
     end
 end
