@@ -6,14 +6,15 @@ clear; clc;
 nominal_freq = 125e6;   % Standard WR clock = 125 MHz
 sim_duration = 10;      % total time = 10 s
 drift_ppb = 100;        % slave clock drift = 100 ppb
-jitter_std = 20e-12;    % WR DMTD has ~20 ps RMS noise floor
+Cumulative_Jitter_std = 5e-12;    % Cumulative jitter from the oscillator
+measurement_jitter_std = 30e-12;  % Measurement for timestamping
 
 sim_dt = 1e-3;                      % Simulation time step
 correction_interval = 100e-3;       % Apply correction every 100 ms
 
 % Create clocks
 master = master_clock(nominal_freq);            % Ideal master
-slave  = slave_clock(nominal_freq, drift_ppb, jitter_std); % Drifted slave
+slave  = slave_clock(nominal_freq, drift_ppb, Cumulative_Jitter_std, measurement_jitter_std); % Drifted slave
 
 % Simulation phases: [before SyncE, after SyncE, after offset correction, correction interval]
 n_total = round(sim_duration / sim_dt);
@@ -58,7 +59,7 @@ while u < n1 + n2 + n3
     if mod(u, ci) == 0
         offset_est = slave.get_time_raw() - master.get_time_raw();
         slave.apply_offset_correction(-offset_est); % Simulate WR offset correction every cycle
-        disp(u*sim_dt);
+        %disp(u*sim_dt);
     end
     advance_clocks(master, slave, sim_dt);
     time_error(u) = 1e9 * (slave.get_time_raw() - master.get_time_raw());
