@@ -23,16 +23,22 @@ classdef wrclock < handle
             obj.cycle_count = obj.cycle_count + obj.frequency * sim_dt;
         end
 
-        function t = get_time(obj)
-            % Time as measured by clock cycles
+        function t = get_time_absolute(obj)
+            % Time as measured without jitter
             jitter = randn * obj.jitter_std;
-            t = round(obj.cycle_count) / obj.nominal_freq + jitter;
+            t = obj.cycle_count / obj.nominal_freq;
         end
 
         function t = get_time_raw(obj)
-            % For internal debugging and phase detector (DDMTD)
+            % For phase detector (with jitter)
             jitter = randn * obj.jitter_std;
             t = obj.cycle_count / obj.nominal_freq + jitter;
+        end
+
+        function t = get_time_tick(obj)
+            % Time used for timestamps
+            jitter = randn * obj.jitter_std;
+            t = round(obj.cycle_count / obj.nominal_freq + jitter);
         end
 
         function reset(obj)
