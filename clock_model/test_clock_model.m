@@ -1,84 +1,134 @@
-% Purpose: Test and visualize White Rabbit clock model behavior
+% test_clock_phase_components.m
+% Full diagnostic comparison of ideal vs noisy clock
 
 clear; clc;
 
-% === Parameters ===
-nominal_freq = 125e6;   % Standard WR clock = 125 MHz
-sim_duration = 10;      % total time = 10 s
-drift_ppb = 100;        % slave clock drift = 100 ppb
-Cumulative_Jitter_std = 5e-12;    % Cumulative jitter from the oscillator
-measurement_jitter_std = 30e-12;  % Measurement for timestamping
+%% PARAMETERS
+f0 = 125e6;
+phi0 = 0;
+dt = 1e-12;
+N = 5000;
 
-sim_dt = 1e-3;                      % Simulation time step
-correction_interval = 100e-3;       % Apply correction every 100 ms
+% Noisy profile
+params_noisy = struct(...
+    'delta_f0', 1e3, ...
+    'alpha', 100, ...
+    'sigma_rw', 500, ...
+    'sigma_jitter', 100 ...
+);
 
-% Create clocks
-master = master_clock(nominal_freq);            % Ideal master
-slave  = slave_clock(nominal_freq, drift_ppb, Cumulative_Jitter_std, measurement_jitter_std); % Drifted slave
+% Ideal profile
+params_ideal = struct(...
+    'delta_f0', 0, ...
+    'alpha', 0, ...
+    'sigma_rw', 0, ...
+    'sigma_jitter', 0 ...
+);
 
-% Simulation phases: [before SyncE, after SyncE, after offset correction, correction interval]
-n_total = round(sim_duration / sim_dt);
-n1 = round(n_total / 3);
-n2 = round(n_total / 3);
-n3 = n_total - n1 - n2;
-ci = round(sim_duration / correction_interval);
+%% INIT CLOCKS
+np_noisy = noise_profile(params_noisy);
+np_ideal = noise_profile(params_ideal);
 
-% Data logging
-time_axis = (0:n_total-1) * sim_dt;
-time_error = zeros(1, n_total);        % in ns
+clk_noisy = master_clock(f0, phi0, np_noisy);
+clk_ideal = master_clock(f0, phi0, np_ideal);
 
-% === Phase 1: BEFORE syntonization ===
-u = 1;
-while u < n1
-    advance_clocks(master, slave, sim_dt);
-    time_error(u) = 1e9 * (slave.get_time_raw() - master.get_time_raw());
-    u = u + 1;
+%% BUFFERS
+t_vec = (0:N-1) * dt;
+
+phi_noisy = zeros(1, N);
+phi_ideal = zeros(1, N);
+phi_error = zeros(1, N);
+
+coarse_noisy = zeros(1, N);
+coarse_error = zeros(1, N);
+
+fine_noisy = zeros(1, N);
+fine_error = zeros(1, N);
+
+eta_vec = zeros(1, N);
+df_vec = zeros(1, N);
+
+%% SIMULATION LOOP
+for i = 1:N
+    % Ideal
+    phi_ideal(i) = clk_ideal.phi;
+
+    % Coarse (Rounded)
+    coarse_noisy(i) = clk_noisy.getCoarsePhase();
+    coarse_error(i) = coarse_noisy(i) -  phi_ideal(i);
+
+    % Fine (Fractional)
+    fine_noisy(i) = clk_noisy.getFinePhase();
+    fine_error(i) = fine_noisy(i) - phi_ideal(i);
+
+    % Noise state
+    eta_vec(i) = clk_noisy.noise_profile.eta;
+
+    % Save current total freq deviation (est.)
+    df_vec(i) = params_noisy.delta_f0 + ...
+                params_noisy.alpha * clk_noisy.noise_profile.t_accum + ...
+                clk_noisy.noise_profile.eta;
+
+    % Advance clocks
+    clk_noisy = clk_noisy.advance(dt);
+    clk_ideal = clk_ideal.advance(dt);
 end
 
-% === Phase 2: Apply syntonization ===
+%% PLOTS
+figure('Name', 'Clock Phase Component Breakdown', 'Position', [100 100 1300 1000]);
+% --- 1. Coarse Phase
+subplot(3,2,1);
+plot(t_vec*1e6, phi_ideal, 'b--', t_vec*1e6, coarse_noisy, 'r');
+xlabel('Time (µs)'); ylabel('Coarse Phase (rad)');
+legend('Ideal','Noisy'); title('Coarse Evolution (Rounded)');
 
-% SyncE approx
-function syntonize(mc, sc)
-    sc.frequency = mc.frequency;
-end
+% --- 2. Fine Phase
+subplot(3,2,2);
+plot(t_vec*1e6, phi_ideal, 'b--', t_vec*1e6, fine_noisy, 'r');
+xlabel('Time (µs)'); ylabel('Fine Phase (rad)');
+legend('Ideal','Noisy'); title('Fine Phase Evolution (Fractional)');
 
-u = n1;
-slave.tick_callback = @(sc)syntonize(master, sc);
-while u < n1 + n2
-    % slave.drift_ppb = 0;
-    % slave.apply_freq_correction(master.frequency - slave.frequency); % Simulate SyncE continuous syntonization
-    advance_clocks(master, slave, sim_dt);
-    time_error(u) = 1e9 * (slave.get_time_raw() - master.get_time_raw());
-    u = u + 1;
-end
+% --- 3. Phase Error Comparison
+subplot(3,2,3);
+plot(t_vec*1e6, coarse_error, 'g--', ...
+     t_vec*1e6, fine_error, 'm:');
+xlabel('Time (µs)'); ylabel('Error (rad)');
+legend('Coarse','Fine'); title('Phase Error Comparison');
 
-% === Phase 3: Apply offset correction (WR-like) ===
-u = n1 + n2;
-while u < n1 + n2 + n3
-    %slave.apply_freq_correction(master.frequency - slave.frequency); 
-    if mod(u, ci) == 0
-        offset_est = slave.get_time_raw() - master.get_time_raw();
-        slave.apply_offset_correction(-offset_est); % Simulate WR offset correction every cycle
-        %disp(u*sim_dt);
-    end
-    advance_clocks(master, slave, sim_dt);
-    time_error(u) = 1e9 * (slave.get_time_raw() - master.get_time_raw());
-    u = u + 1;
-end
+% --- 4. Random Walk η(t)
+subplot(3,2,4);
+plot(t_vec*1e6, eta_vec, 'b');
+xlabel('Time (µs)'); ylabel('η(t) (Hz)');
+title('Random Walk Component (η)');
 
+% --- 5. Instantaneous Frequency Deviation
+subplot(3,2,5);
+plot(t_vec*1e6, df_vec, 'r');
+xlabel('Time (µs)'); ylabel('Δf (Hz)');
+title('Total Frequency Deviation of Noisy Clock');
 
-% === Plotting ===
-figure;
-window = n_total / 50;  % size of moving average window 125000 cycles = 1ms
-smoothed_error = movmean(time_error, window);
-plot(time_axis, time_error, 'LineWidth', 1.0); 
-hold on;
-plot(time_axis, smoothed_error, '--r', 'LineWidth', 1.5);
-xlabel('Time [s]');
-ylabel('Time Error [ns]');
-title('Slave Time Error Relative to Master with (WR Clock Model Test)');
-grid on;
-xline(time_axis(n1-1), '--k', 'SyncE applied');
-xline(time_axis(n1+n2-1), '--r', 'SyncE + Offset correction applied');
-legend('Time error', 'Location', 'best');
-legend('Time error', 'Moving average', 'Location', 'best');
+sgtitle('Clock Phase Model — Full Diagnostic Comparison');
+
+%% METRICS: Phase Error and Frequency Drift
+% Phase Error
+mean_phi_err = mean(phi_error);
+std_phi_err  = std(phi_error);
+
+mean_coarse_err = mean(coarse_error);
+std_coarse_err  = std(coarse_error);
+
+mean_fine_err = mean(fine_error);
+std_fine_err  = std(fine_error);
+
+% Frequency Deviation
+mean_df = mean(df_vec);
+std_df  = std(df_vec);
+
+% --- Console Output ---
+fprintf('\n--- Phase Error Statistics ---\n');
+fprintf('Coarse Phase Error  : Mean = %.3e rad, Std = %.3e rad\n', mean_coarse_err, std_coarse_err);
+fprintf('Fine Phase Error    : Mean = %.3e rad, Std = %.3e rad\n', mean_fine_err, std_fine_err);
+
+fprintf('\n--- Frequency Deviation ---\n');
+fprintf('Total Frequency Deviation : Mean = %.3f Hz, Std = %.3f Hz\n', mean_df, std_df);
+

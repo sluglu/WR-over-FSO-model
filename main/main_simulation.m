@@ -8,7 +8,7 @@ drift = drift_ppm * 1e-6;
 
 % --- Init Clocks ---
 master = master_clock(0);
-slave  = slave_clock(0, drift);
+slave  = slave_clock(0, drift, 0, 0);
 
 % --- Delay Parameters (in s) ---
 delays.sync           = 0.05;   % Propagation delay for Sync
