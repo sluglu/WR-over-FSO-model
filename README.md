@@ -4,9 +4,9 @@ A MATLAB model for simulating White Rabbit (WR) synchronization in orbital scena
 Components implemented :
 - clock class
 - noise profile class
+- timestamper class
 
 Components to be implemented : 
-- timestamping (input clock, with noise profile for measurment noise (DDMTD,timestamping module,etc), coarse and fine, maybe a timestamper class with presice and coarse child class, output timestamps)
 - L1 syntonization (input freq and doppler, add doppler, add noise profile (CDR,PLL,etc), output freq, with compensated and non-compensated child class)
 - PTP message exchange (maybe with SimEvents ?)
 - link delay model and offset calculation logic (input timestamps, with medium solution child class : single-mode fiber; FSO, mmwawe, no noise beacuse numerical ?, output phase offset)
