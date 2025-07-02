@@ -7,25 +7,18 @@ classdef (Abstract) wrclock
     end
 
     methods
-        function obj = wrclock(f0, phi0, noise_profile)
+        function obj = wrclock(f0, t0, noise_profile)
             obj.f0 = f0;
-            obj.phi0 = phi0;
-            obj.phi = phi0;
+            obj.phi0 = t0 * (2*pi*f0);
+            obj.phi = 0;
             obj.noise_profile = noise_profile;
+            obj = obj.advance(t0);
         end
 
         function obj = advance(obj, dt)
             [df, obj.noise_profile] = obj.noise_profile.frequencyNoise(dt);
             f = obj.f0 + df;
             obj.phi = obj.phi + 2 * pi * f * dt;
-        end
-
-        function cycles = getCoarsePhase(obj)
-            cycles = floor(obj.phi);
-        end
-
-        function phase = getFinePhase(obj)
-            phase = obj.phi;
         end
 
         function obj = reset(obj)

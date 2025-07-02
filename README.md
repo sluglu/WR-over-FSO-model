@@ -6,12 +6,12 @@ Components implemented :
 - noise profile class
 
 Components to be implemented : 
-- timestamping (with noise profile for measurment noise (DDMTD,timestamping module,etc), coarse and fine, maybe a timestamper class with presice and coarse child class)
+- timestamping (input clock, with noise profile for measurment noise (DDMTD,timestamping module,etc), coarse and fine, maybe a timestamper class with presice and coarse child class, output timestamps)
 - L1 syntonization (input freq and doppler, add doppler, add noise profile (CDR,PLL,etc), output freq, with compensated and non-compensated child class)
 - PTP message exchange (maybe with SimEvents ?)
-- link delay model and offset calculation logic (with medium solution child class : single-mode fiber; FSO, mmwawe, no noise beacuse numerical ?)
-- offset correction module (with noise profile ?)
-- channel model (maybe with Satellite communication toolbox ? maybe simulating modulation scheme)
+- link delay model and offset calculation logic (input timestamps, with medium solution child class : single-mode fiber; FSO, mmwawe, no noise beacuse numerical ?, output phase offset)
+- offset correction module (input phase offset and clock, with noise profile ?, update clock)
+- channel model (input freq and maybe message, maybe with Satellite communication toolbox ? maybe simulating different modulation scheme, output freq and maybe message)
 
 PTP message exchange govern every transmission.
 every transmission go like this :

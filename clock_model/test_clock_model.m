@@ -1,20 +1,17 @@
-% test_clock_phase_components.m
-% Full diagnostic comparison of ideal vs noisy clock
-
 clear; clc;
 
 %% PARAMETERS
 f0 = 125e6;
-phi0 = 0;
+t0 = 1000;
 dt = 1e-12;
 N = 5000;
 
 % Noisy profile
 params_noisy = struct(...
     'delta_f0', 1e3, ...
-    'alpha', 100, ...
-    'sigma_rw', 500, ...
-    'sigma_jitter', 100 ...
+    'alpha', 1000, ...
+    'sigma_rw', 5000, ...
+    'sigma_jitter', 1000 ...
 );
 
 % Ideal profile
@@ -29,21 +26,15 @@ params_ideal = struct(...
 np_noisy = noise_profile(params_noisy);
 np_ideal = noise_profile(params_ideal);
 
-clk_noisy = master_clock(f0, phi0, np_noisy);
-clk_ideal = master_clock(f0, phi0, np_ideal);
+clk_noisy = master_clock(f0, t0, np_noisy);
+clk_ideal = master_clock(f0, t0, np_ideal);
 
 %% BUFFERS
-t_vec = (0:N-1) * dt;
+t_vec = (0:N-1)*dt + t0;
 
 phi_noisy = zeros(1, N);
 phi_ideal = zeros(1, N);
 phi_error = zeros(1, N);
-
-coarse_noisy = zeros(1, N);
-coarse_error = zeros(1, N);
-
-fine_noisy = zeros(1, N);
-fine_error = zeros(1, N);
 
 eta_vec = zeros(1, N);
 df_vec = zeros(1, N);
@@ -52,14 +43,8 @@ df_vec = zeros(1, N);
 for i = 1:N
     % Ideal
     phi_ideal(i) = clk_ideal.phi;
-
-    % Coarse (Rounded)
-    coarse_noisy(i) = clk_noisy.getCoarsePhase();
-    coarse_error(i) = coarse_noisy(i) -  phi_ideal(i);
-
-    % Fine (Fractional)
-    fine_noisy(i) = clk_noisy.getFinePhase();
-    fine_error(i) = fine_noisy(i) - phi_ideal(i);
+    phi_noisy(i) = clk_noisy.phi;
+    phi_error(i) = clk_noisy.phi - clk_ideal.phi;
 
     % Noise state
     eta_vec(i) = clk_noisy.noise_profile.eta;
@@ -76,36 +61,41 @@ end
 
 %% PLOTS
 figure('Name', 'Clock Phase Component Breakdown', 'Position', [100 100 1300 1000]);
-% --- 1. Coarse Phase
+% --- 1. Phase ideal vs noisy
 subplot(3,2,1);
-plot(t_vec*1e6, phi_ideal, 'b--', t_vec*1e6, coarse_noisy, 'r');
-xlabel('Time (µs)'); ylabel('Coarse Phase (rad)');
-legend('Ideal','Noisy'); title('Coarse Evolution (Rounded)');
+plot(t_vec, phi_ideal, 'b--', t_vec, phi_noisy, 'r');
+xlabel('Time'); ylabel('Phase (rad)');
+legend('Ideal','Noisy'); title('Phase Evolution');
 
-% --- 2. Fine Phase
+% --- 2. Phase error 
 subplot(3,2,2);
-plot(t_vec*1e6, phi_ideal, 'b--', t_vec*1e6, fine_noisy, 'r');
-xlabel('Time (µs)'); ylabel('Fine Phase (rad)');
-legend('Ideal','Noisy'); title('Fine Phase Evolution (Fractional)');
+plot(t_vec, phi_error, 'b--');
+xlabel('Time'); ylabel('Phase Error (rad)');
+title('Phase Error');
 
-% --- 3. Phase Error Comparison
+% --- 3. Random Walk η(t)
 subplot(3,2,3);
-plot(t_vec*1e6, coarse_error, 'g--', ...
-     t_vec*1e6, fine_error, 'm:');
-xlabel('Time (µs)'); ylabel('Error (rad)');
-legend('Coarse','Fine'); title('Phase Error Comparison');
-
-% --- 4. Random Walk η(t)
-subplot(3,2,4);
-plot(t_vec*1e6, eta_vec, 'b');
-xlabel('Time (µs)'); ylabel('η(t) (Hz)');
+plot(t_vec, eta_vec, 'b');
+xlabel('Time'); ylabel('η(t) (Hz)');
 title('Random Walk Component (η)');
 
-% --- 5. Instantaneous Frequency Deviation
-subplot(3,2,5);
-plot(t_vec*1e6, df_vec, 'r');
-xlabel('Time (µs)'); ylabel('Δf (Hz)');
+% --- 4. Instantaneous Frequency Deviation
+subplot(3,2,4);
+plot(t_vec, df_vec, 'r');
+xlabel('Time'); ylabel('Δf (Hz)');
 title('Total Frequency Deviation of Noisy Clock');
+
+% --- 5. Signal
+
+ideal_signal = cos(2*pi*clk_ideal.f0*t_vec + phi_ideal);
+noisy_signal = cos(2*pi*clk_noisy.f0*t_vec + phi_noisy);
+
+subplot(3,2,[5,6]);
+plot(t_vec, ideal_signal, 'b--', t_vec, noisy_signal, 'r');
+xlabel('Time'); ylabel('Signal');
+legend('Ideal','Noisy'); title('Signal');
+
+
 
 sgtitle('Clock Phase Model — Full Diagnostic Comparison');
 
@@ -114,20 +104,13 @@ sgtitle('Clock Phase Model — Full Diagnostic Comparison');
 mean_phi_err = mean(phi_error);
 std_phi_err  = std(phi_error);
 
-mean_coarse_err = mean(coarse_error);
-std_coarse_err  = std(coarse_error);
-
-mean_fine_err = mean(fine_error);
-std_fine_err  = std(fine_error);
-
 % Frequency Deviation
 mean_df = mean(df_vec);
 std_df  = std(df_vec);
 
 % --- Console Output ---
 fprintf('\n--- Phase Error Statistics ---\n');
-fprintf('Coarse Phase Error  : Mean = %.3e rad, Std = %.3e rad\n', mean_coarse_err, std_coarse_err);
-fprintf('Fine Phase Error    : Mean = %.3e rad, Std = %.3e rad\n', mean_fine_err, std_fine_err);
+fprintf('Phase Error  : Mean = %.3e rad, Std = %.3e rad\n', mean_phi_err, std_phi_err);
 
 fprintf('\n--- Frequency Deviation ---\n');
 fprintf('Total Frequency Deviation : Mean = %.3f Hz, Std = %.3f Hz\n', mean_df, std_df);
