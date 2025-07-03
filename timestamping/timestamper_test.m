@@ -6,7 +6,7 @@ t0 = 0;
 dt = 1e-12;
 N = 50;
 
-measurment_jitter = 5e-12;
+measurment_jitter = 5e-10;
 
 %% INIT CLOCKS AND TIMESTAMPER
 np_ts = noise_profile_meas(measurment_jitter);
@@ -25,9 +25,12 @@ clk = master_clock(f0, t0, np_ideal);
 %% BUFFERS
 t_vec = (0:N-1) * dt;
 
-phi_raw = zeros(1, N);
+phi_ideal = zeros(1, N);
 phi_coarse = zeros(1, N);
 phi_fine = zeros(1, N);
+
+coarse_error = zeros(1, N);
+fine_error = zeros(1, N);
 
 %% SIMULATION LOOP
 for i = 1:N
@@ -50,14 +53,14 @@ end
 figure('Name', 'Raw vs Coarse vs Fine phase measurment', 'Position', [100 100 1300 1000]);
 % --- 1. Phase Evolution
 subplot(2,1,1);
-plot(t_vec*1e6, phi_coarse, 'r', t_vec*1e6, phi_fine, 'g', t_vec*1e6, phi_ideal, 'b--');
-xlabel('Time (µs)'); ylabel('Coarse Phase (rad)');
+plot(t_vec, phi_coarse, 'r', t_vec, phi_fine, 'g', t_vec, phi_ideal, 'b--');
+xlabel('Time'); ylabel('Coarse Phase (rad)');
 legend('Coarse', 'Fine','Raw'); title('Phase Evolution');
 
 % --- 2. Phase Evolution
 subplot(2,1,2);
-plot(t_vec*1e6, coarse_error, 'r', t_vec*1e6, fine_error, 'g', t_vec*1e6, 0*t_vec, 'b--');
-xlabel('Time (µs)'); ylabel('Coarse Phase (rad)');
+plot(t_vec, coarse_error, 'r', t_vec, fine_error, 'g', t_vec, 0*t_vec, 'b--');
+xlabel('Time'); ylabel('Coarse Phase (rad)');
 legend('Coarse Error', 'Fine Error', 'ideal zero error'); title('Phase Error');
 
 

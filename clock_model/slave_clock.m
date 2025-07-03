@@ -5,7 +5,8 @@ classdef slave_clock < wrclock
         end
 
         function obj = syntonize(obj, f_new)
-            obj.f0 = f_new;
+            obj.noise_profile = obj.noise_profile.reset();
+            obj.f = f_new;
         end
     end
 end

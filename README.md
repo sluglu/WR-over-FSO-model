@@ -5,13 +5,16 @@ Components implemented :
 - clock class
 - noise profile class
 - timestamper class
+- L1_syntonizer class
 
 Components to be implemented : 
-- L1 syntonization (input freq and doppler, add doppler, add noise profile (CDR,PLL,etc), output freq, with compensated and non-compensated child class)
 - PTP message exchange (maybe with SimEvents ?)
 - link delay model and offset calculation logic (input timestamps, with medium solution child class : single-mode fiber; FSO, mmwawe, no noise beacuse numerical ?, output phase offset)
 - offset correction module (input phase offset and clock, with noise profile ?, update clock)
-- channel model (input freq and maybe message, maybe with Satellite communication toolbox ? maybe simulating different modulation scheme, output freq and maybe message)
+- channel model :
+    - doppler_shift (input phi and current time, add doppler, output phi)
+    - delay (input tx time, output rx time)
+    - calculate channel (calculate delay and doppler from given satellite scenario)
 
 PTP message exchange govern every transmission.
 every transmission go like this :

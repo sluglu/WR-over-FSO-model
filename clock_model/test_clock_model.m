@@ -2,16 +2,16 @@ clear; clc;
 
 %% PARAMETERS
 f0 = 125e6;
-t0 = 1000;
-dt = 1e-12;
+t0 = 0;
+dt = 1e-10;
 N = 5000;
 
 % Noisy profile
 params_noisy = struct(...
-    'delta_f0', 1e3, ...
-    'alpha', 1000, ...
-    'sigma_rw', 5000, ...
-    'sigma_jitter', 1000 ...
+    'delta_f0', 50, ...
+    'alpha', 100, ...
+    'sigma_rw', 500, ...
+    'sigma_jitter', 20 ...
 );
 
 % Ideal profile
@@ -36,23 +36,17 @@ phi_noisy = zeros(1, N);
 phi_ideal = zeros(1, N);
 phi_error = zeros(1, N);
 
-eta_vec = zeros(1, N);
 df_vec = zeros(1, N);
 
 %% SIMULATION LOOP
 for i = 1:N
-    % Ideal
     phi_ideal(i) = clk_ideal.phi;
     phi_noisy(i) = clk_noisy.phi;
     phi_error(i) = clk_noisy.phi - clk_ideal.phi;
 
-    % Noise state
+    df_vec(i) = clk_noisy.f - clk_ideal.f; 
     eta_vec(i) = clk_noisy.noise_profile.eta;
-
-    % Save current total freq deviation (est.)
-    df_vec(i) = params_noisy.delta_f0 + ...
-                params_noisy.alpha * clk_noisy.noise_profile.t_accum + ...
-                clk_noisy.noise_profile.eta;
+    t_accum(i) = clk_noisy.noise_profile.t_accum;
 
     % Advance clocks
     clk_noisy = clk_noisy.advance(dt);
@@ -62,38 +56,55 @@ end
 %% PLOTS
 figure('Name', 'Clock Phase Component Breakdown', 'Position', [100 100 1300 1000]);
 % --- 1. Phase ideal vs noisy
-subplot(3,2,1);
+subplot(2,3,1);
 plot(t_vec, phi_ideal, 'b--', t_vec, phi_noisy, 'r');
 xlabel('Time'); ylabel('Phase (rad)');
 legend('Ideal','Noisy'); title('Phase Evolution');
 
 % --- 2. Phase error 
-subplot(3,2,2);
+subplot(2,3,2);
 plot(t_vec, phi_error, 'b--');
 xlabel('Time'); ylabel('Phase Error (rad)');
 title('Phase Error');
 
-% --- 3. Random Walk η(t)
-subplot(3,2,3);
-plot(t_vec, eta_vec, 'b');
-xlabel('Time'); ylabel('η(t) (Hz)');
-title('Random Walk Component (η)');
 
-% --- 4. Instantaneous Frequency Deviation
-subplot(3,2,4);
+% --- 3. Instantaneous Frequency Deviation
+subplot(2,3,3);
 plot(t_vec, df_vec, 'r');
 xlabel('Time'); ylabel('Δf (Hz)');
-title('Total Frequency Deviation of Noisy Clock');
+title('Frequency Deviation of Noisy Clock');
 
-% --- 5. Signal
+% --- 4. Cumulative jitter
+subplot(2,3,4);
+plot(t_vec, eta_vec);
+xlabel('Time'); ylabel('\eta (Hz)');
+title('Cumulative Jitter (Random Walk) Component');
 
-ideal_signal = cos(2*pi*clk_ideal.f0*t_vec + phi_ideal);
-noisy_signal = cos(2*pi*clk_noisy.f0*t_vec + phi_noisy);
 
-subplot(3,2,[5,6]);
-plot(t_vec, ideal_signal, 'b--', t_vec, noisy_signal, 'r');
-xlabel('Time'); ylabel('Signal');
-legend('Ideal','Noisy'); title('Signal');
+% --- 5. Drift component
+subplot(2,3,5);
+plot(t_vec,  params_noisy.alpha * t_accum);
+xlabel('Time'); ylabel('\alpha * t (Hz)');
+title('Drift Component');
+
+% --- 6. Signal
+
+phi_ideal_adj = phi_ideal - phi_ideal(1);
+phi_noisy_adj = phi_noisy - phi_noisy(1);
+
+ideal_signal = cos(phi_ideal_adj);
+noisy_signal = cos(phi_noisy_adj);
+
+cycles_to_show = 5;
+samples_per_cycle = round(1 / (f0 * dt));
+zoom_idx = 1000 : 1000 + cycles_to_show * samples_per_cycle;
+zoom_idx = zoom_idx(zoom_idx <= N);  % Prevent overflow
+
+subplot(2,3,6);
+plot(t_vec(zoom_idx), ideal_signal(zoom_idx), 'b--', ...
+     t_vec(zoom_idx), noisy_signal(zoom_idx), 'r');
+xlabel('Time (s)'); ylabel('Amplitude');
+legend('Ideal','Noisy'); title('Signal (Zoomed In)');
 
 
 
@@ -113,5 +124,5 @@ fprintf('\n--- Phase Error Statistics ---\n');
 fprintf('Phase Error  : Mean = %.3e rad, Std = %.3e rad\n', mean_phi_err, std_phi_err);
 
 fprintf('\n--- Frequency Deviation ---\n');
-fprintf('Total Frequency Deviation : Mean = %.3f Hz, Std = %.3f Hz\n', mean_df, std_df);
+fprintf('Frequency Deviation : Mean = %.3f Hz, Std = %.3f Hz\n', mean_df, std_df);
 
