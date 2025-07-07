@@ -29,6 +29,10 @@ classdef noise_profile
             df = obj.delta_f0 + obj.alpha * obj.t_accum + obj.eta + randn * obj.sigma_jitter;
         end
 
+        function meas_noise = measurementNoise(obj)
+            meas_noise = randn * obj.sigma_jitter;
+        end
+
         function obj = reset(obj)
             obj.t_accum = 0;
             obj.eta = 0;

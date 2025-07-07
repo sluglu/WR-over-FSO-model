@@ -1,16 +1,12 @@
-clear; clc;
+ clear; clc;
 
 %% PARAMETERS
 f0 = 125e6;
 t0 = 0;
-dt = 1e-12;
-N = 50;
-
-measurment_jitter = 5e-10;
+dt = 1e-9;
+N = 500;
 
 %% INIT CLOCKS AND TIMESTAMPER
-np_ts = noise_profile_meas(measurment_jitter);
-ts = timestamper(np_ts);
 
 % Ideal noise profile
 params_ideal = struct(...
@@ -19,7 +15,20 @@ params_ideal = struct(...
     'sigma_rw', 0, ...
     'sigma_jitter', 0 ...
 );
+
+params_meas_noise = struct(...
+    'delta_f0', 0, ...
+    'alpha', 0, ...
+    'sigma_rw', 0, ...
+    'sigma_jitter', 5e-3 ...
+);
+
 np_ideal = noise_profile(params_ideal);
+
+np_meas_noise = noise_profile(params_meas_noise);
+
+ts = timestamper(np_meas_noise);
+
 clk = master_clock(f0, t0, np_ideal);
 
 %% BUFFERS

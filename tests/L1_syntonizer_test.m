@@ -6,8 +6,6 @@ t0 = 0;
 dt = 1e-6;
 N = 5000;
 
-measurment_jitter = 100;
-
 %% INIT CLOCKS AND L1_syntonizer
 
 params_master = struct(...
@@ -28,8 +26,7 @@ params_slave = struct(...
 np_slave = noise_profile(params_slave);
 clk_slave = slave_clock(f0, t0, np_slave);
 
-np_synt = noise_profile_meas(measurment_jitter);
-synt = L1_syntonizer(np_synt);
+synt = L1_syntonizer(np_master);
 
 %% BUFFERS
 t_vec = (0:N-1) * dt + t0;

@@ -2,15 +2,16 @@
 A MATLAB model for simulating White Rabbit (WR) synchronization in orbital scenarios using Free-Space Optics (FSO) communication behavior.
 
 Components implemented :
-- clock class
-- noise profile class
-- timestamper class
-- L1_syntonizer class
+- clock module
+- noise profile submodule
+- timestamper module
+- L1_syntonizer module
+- Node object
 
 Components to be implemented : 
-- PTP message exchange (maybe with SimEvents ?)
-- link delay model and offset calculation logic (input timestamps, with medium solution child class : single-mode fiber; FSO, mmwawe, no noise beacuse numerical ?, output phase offset)
-- offset correction module (input phase offset and clock, with noise profile ?, update clock)
+- PTP FSM module (maybe with SimEvents ?)
+- offset calculation module (input timestamps, with medium solution child class : single-mode fiber; FSO, mmwawe, no noise beacuse numerical ?, output phase offset)
+- offset and frequency correction module (input phase offset and clock, with noise profile ?, update clock)
 - channel model :
     - doppler_shift (input phi and current time, add doppler, output phi)
     - delay (input tx time, output rx time)

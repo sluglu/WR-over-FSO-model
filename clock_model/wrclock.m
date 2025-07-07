@@ -1,4 +1,4 @@
-classdef (Abstract) wrclock
+classdef wrclock
     properties
         f0            % Nominal frequency (Hz)
         f             % Current frequency (Hz)
