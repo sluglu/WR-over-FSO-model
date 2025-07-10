@@ -17,28 +17,21 @@ params_noisy = struct(...
     'sigma_rw', 500, ...
     'sigma_jitter', 100e-3 ...
 );
-np_noisy = noise_profile(params_noisy);
+np_noisy = NoiseProfile(params_noisy);
 
-% Ideal profile
-params_ideal = struct(...
-    'delta_f0', 0, ...
-    'alpha', 0, ...
-    'sigma_rw', 0, ...
-    'sigma_jitter', 0 ...
-);
-np_ideal = noise_profile(params_ideal);
+np_ideal = NoiseProfile();
 
-clk_slave = slave_clock(f0, t0, np_noisy);
-clk_master = master_clock(f0, t0, np_ideal);
+clk_slave = SlaveClock(f0, t0, np_noisy);
+clk_master = MasterClock();
 
-ts_noisy = timestamper(np_noisy);
-ts_ideal = timestamper(np_noisy);
+ts_noisy = Timestamper(np_noisy);
+ts_ideal = Timestamper(np_noisy);
 
-st_noisy = L1_syntonizer(np_noisy);
-st_ideal = L1_syntonizer(np_noisy);
+st_noisy = L1Syntonizer(np_noisy);
+st_ideal = L1Syntonizer(np_noisy);
 
-master = masterNode(clk_master, ts_ideal);
-slave  = slaveNode(clk_slave, ts_noisy, st_noisy);
+master = MasterNode(clk_master, ts_ideal, MasterFSM());
+slave  = SlaveNode(clk_slave, ts_noisy, SlaveFSM(), st_noisy);
 
 %% Run simulation loop
 N = floor(T_end/dt) + 1;

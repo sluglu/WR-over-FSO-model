@@ -14,20 +14,11 @@ params_noisy = struct(...
     'sigma_jitter', 20 ...
 );
 
-% Ideal profile
-params_ideal = struct(...
-    'delta_f0', 0, ...
-    'alpha', 0, ...
-    'sigma_rw', 0, ...
-    'sigma_jitter', 0 ...
-);
-
 %% INIT CLOCKS
-np_noisy = noise_profile(params_noisy);
-np_ideal = noise_profile(params_ideal);
+np_noisy = NoiseProfile(params_noisy);
 
-clk_noisy = master_clock(f0, t0, np_noisy);
-clk_ideal = master_clock(f0, t0, np_ideal);
+clk_noisy = SlaveClock(f0, t0, np_noisy);
+clk_ideal = MasterClock();
 
 %% BUFFERS
 t_vec = (0:N-1)*dt + t0;

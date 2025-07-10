@@ -1,55 +1,70 @@
-classdef slaveFSM < handle
+classdef SlaveFSM < PTPFSM
     properties
-        clock
-        syntonizer
-        state = "WAIT_SYNC"
-        t1
-        t2
-        t3
-        t4
+        t1  % master sends SYNC (from FOLLOW_UP)
+        t2  % slave receives SYNC
+        t3  % slave sends DELAY_REQ
+        t4  % master replies with DELAY_RESP
+
+        waiting_followup
+        waiting_delay_resp
+        synced
+
+        last_offset
+        last_delay
     end
 
     methods
-        function obj = slaveFSM(clock)
-            obj.clock = clock;
+        function obj = SlaveFSM()
+            obj@PTPFSM();
+            obj.synced = false;
+            obj.waiting_followup = false;
+            obj.waiting_delay_resp = false;
+            obj.last_offset = NaN;
+            obj.last_delay = NaN;
         end
 
-        function [msgs, freq_out] = step(obj, sim_time, ts)
-            msgs = [];
-            freq_out = NaN;
+        function msgs = step(obj, sim_time, cts, fts)
+            msgs = {};
+            remaining_msgs = {};
 
-            if obj.state == "SEND_DELAY_REQ"
-                obj.t3 = ts;
-                msg = struct("type", "DELAY_REQ", "arrival_time", sim_time + 50e-9, "payload", struct("t3", obj.t3));
-                msgs = [msg];
-                obj.state = "WAIT_DELAY_RESP";
+            for i = 1:length(obj.msg_queue)
+                msg = obj.msg_queue{i};
+
+                switch msg.type
+                    case 'SYNC'
+                        obj.t2 = sim_time;
+                        obj.waiting_followup = true;
+
+                    case 'FOLLOW_UP'
+                        obj.t1 = msg.t1;
+                        obj.waiting_followup = false;
+
+                        % Send DELAY_REQ
+                        obj.t3 = sim_time;
+                        delay_req = struct( ...
+                            'type', 'DELAY_REQ', ...
+                            'cts', cts, ...
+                            'fts', fts, ...
+                            'timestamp', obj.t3 ...
+                        );
+                        msgs{end+1} = delay_req;
+                        obj.waiting_delay_resp = true;
+
+                    case 'DELAY_RESP'
+                        obj.t4 = msg.t4;
+                        obj.waiting_delay_resp = false;
+                        obj.synced = true;
+
+                        % Compute offset and delay
+                        obj.last_delay = ((obj.t2 - obj.t1) + (obj.t4 - obj.t3)) / 2;
+                        obj.last_offset = ((obj.t2 - obj.t1) - (obj.t4 - obj.t3)) / 2;
+
+                        fprintf('[SYNCED] Offset = %.3e s | Delay = %.3e s\n', ...
+                            obj.last_offset, obj.last_delay);
+                end
             end
-        end
 
-        function receive(obj, msg, sim_time)
-            t_now = obj.clock.get_time();
-            switch msg.type
-                case "SYNC"
-                    obj.t2 = t_now;
-                    obj.t1 = msg.payload.t1;
-                    obj.state = "WAIT_FOLLOWUP";
-
-                case "FOLLOW_UP"
-                    if obj.state == "WAIT_FOLLOWUP"
-                        offset = obj.t2 - msg.payload.t1;
-                        obj.state = "SEND_DELAY_REQ";
-                    end
-
-                case "DELAY_RESP"
-                    if obj.state == "WAIT_DELAY_RESP"
-                        obj.t4 = msg.payload.t4;
-                        delay = ((obj.t4 - obj.t1) - (obj.t3 - obj.t2)) / 2;
-                        offset = (obj.t2 - obj.t1) - delay;
-                        
-                        obj.state = "WAIT_SYNC";
-                    end
-            end
+            obj.msg_queue = remaining_msgs;
         end
     end
 end
-

@@ -1,4 +1,4 @@
-classdef noise_profile
+classdef NoiseProfile
     properties
         delta_f0     % Constant frequency offset
         alpha        % Linear drift
@@ -10,11 +10,19 @@ classdef noise_profile
     end
 
     methods
-        function obj = noise_profile(params)
-            obj.delta_f0     = params.delta_f0;
-            obj.alpha        = params.alpha;
-            obj.sigma_rw     = params.sigma_rw;
-            obj.sigma_jitter = params.sigma_jitter;
+        function obj = NoiseProfile(params)
+            if nargin > 0
+                obj.delta_f0     = params.delta_f0;
+                obj.alpha        = params.alpha;
+                obj.sigma_rw     = params.sigma_rw;
+                obj.sigma_jitter = params.sigma_jitter;
+            else
+                obj.delta_f0     = 0;
+                obj.alpha        = 0;
+                obj.sigma_rw     = 0;
+                obj.sigma_jitter = 0;
+            end 
+
         end
 
         function [df, obj] = frequencyNoise(obj, dt)

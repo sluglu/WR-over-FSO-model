@@ -1,11 +1,15 @@
-classdef timestamper
+classdef Timestamper
     properties
-        noise_profile  % NoiseProfile object
+        noise_profile NoiseProfile % NoiseProfile object
     end
 
     methods
-        function obj = timestamper(noise_profile)
-            obj.noise_profile = noise_profile;
+        function obj = Timestamper(noise_profile)
+            if nargin > 0
+                obj.noise_profile = noise_profile;
+            else
+                obj.noise_profile = NoiseProfile();
+            end
         end
 
         function phase = getCoarsePhase(obj, clk) 

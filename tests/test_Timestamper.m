@@ -23,13 +23,13 @@ params_meas_noise = struct(...
     'sigma_jitter', 5e-3 ...
 );
 
-np_ideal = noise_profile(params_ideal);
+np_ideal = NoiseProfile(params_ideal);
 
-np_meas_noise = noise_profile(params_meas_noise);
+np_meas_noise = NoiseProfile(params_meas_noise);
 
-ts = timestamper(np_meas_noise);
+ts = Timestamper(np_meas_noise);
 
-clk = master_clock(f0, t0, np_ideal);
+clk = MasterClock(f0, t0, np_ideal);
 
 %% BUFFERS
 t_vec = (0:N-1) * dt;

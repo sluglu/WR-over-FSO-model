@@ -1,8 +1,12 @@
-classdef masterNode < PTPNode
+classdef MasterNode < PTPNode
     methods
-        function obj = masterNode(clock, timestamper)
-            %fsm = masterFSM(clock);
-            obj@PTPNode(clock, timestamper);
+        function obj = MasterNode(clock, timestamper, fsm)
+            if nargin > 0
+                args = {clock, timestamper, fsm};
+            else
+                args = {MasterClock(), timestamper(), MasterFSM()};
+            end
+            obj@PTPNode(args{:});
         end
     end
 end

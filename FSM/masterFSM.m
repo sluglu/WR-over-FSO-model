@@ -1,50 +1,65 @@
-classdef masterFSM < handle
+classdef MasterFSM < PTPFSM
     properties
-        state = "IDLE"
-        clock
-        sync_period = 200e-9
-        followup_delay = 20e-9
-        delayreq_delay = 50e-9
-        last_sync_time = -Inf
-        next_followup_time = Inf
-        t1
+        sync_interval
+        next_sync_time
+        last_cts
+        last_fts
     end
 
     methods
-        function obj = masterFSM(clock)
-            obj.clock = clock;
+        function obj = MasterFSM(sync_interval)
+            obj@PTPFSM();
+            if nargin > 0
+                obj.sync_interval = sync_interval;
+            else
+                obj.sync_interval = 1;
+            end
+            obj.next_sync_time = 0;
         end
 
-        function [msgs, freq_out] = step(obj, sim_time, ts)
-            msgs = [];
-            freq_out = obj.clock.get_frequency();
-            switch obj.state
-                case "IDLE"
-                    if sim_time >= obj.last_sync_time + obj.sync_period
-                        obj.t1 = ts;
-                        msg = struct("type", "SYNC", "arrival_time", sim_time + 50e-9, "payload", struct("t1", obj.t1));
-                        msgs = [msg];
-                        obj.last_sync_time = sim_time;
-                        obj.next_followup_time = sim_time + obj.followup_delay;
-                        obj.state = "WAIT_FOLLOWUP";
-                    end
+        function msgs = step(obj, sim_time, cts, fts)
+            msgs = {};
 
-                case "WAIT_FOLLOWUP"
-                    if sim_time >= obj.next_followup_time
-                        msg = struct("type", "FOLLOW_UP", "arrival_time", sim_time + 50e-9, "payload", struct("t1", obj.t1));
-                        msgs = [msg];
-                        obj.state = "IDLE";
-                    end
-            end
-        end
+            if sim_time >= obj.next_sync_time
+                % Send SYNC
+                sync_msg = struct( ...
+                    'type', 'SYNC', ...
+                    'timestamp', sim_time, ...
+                    'cts', cts, ...
+                    'fts', fts ...
+                );
 
-        function receive(obj, msg, sim_time)
-            % Handle DELAY_REQ from slave
-            if msg.type == "DELAY_REQ"
-                t4 = obj.clock.get_time();
-                response = struct("type", "DELAY_RESP", "arrival_time", sim_time + 50e-9, "payload", struct("t4", t4));
-                obj.last_resp = response;
+                % Send FOLLOW_UP
+                followup_msg = struct( ...
+                    'type', 'FOLLOW_UP', ...
+                    't1', sim_time, ...
+                    'cts', cts, ...
+                    'fts', fts ...
+                );
+
+                msgs = {sync_msg, followup_msg};
+                obj.last_cts = cts;
+                obj.last_fts = fts;
+                obj.next_sync_time = obj.next_sync_time + obj.sync_interval;
             end
+
+            % Respond to DELAY_REQ
+            remaining_msgs = {};
+            for i = 1:length(obj.msg_queue)
+                msg = obj.msg_queue{i};
+                if strcmp(msg.type, 'DELAY_REQ')
+                    delay_resp = struct( ...
+                        'type', 'DELAY_RESP', ...
+                        't4', sim_time, ...
+                        'orig_cts', msg.cts, ...
+                        'orig_fts', msg.fts ...
+                    );
+                    msgs{end+1} = delay_resp;
+                else
+                    remaining_msgs{end+1} = msg;
+                end
+            end
+            obj.msg_queue = remaining_msgs;
         end
     end
 end

@@ -1,11 +1,15 @@
-classdef L1_syntonizer
+classdef L1Syntonizer
     properties
-        noise_profile  % NoiseProfile object
+        noise_profile NoiseProfile % NoiseProfile object
     end
 
     methods
-        function obj = L1_syntonizer(noise_profile)
-            obj.noise_profile = noise_profile;
+        function obj = L1Syntonizer(noise_profile)
+            if nargin > 0
+                obj.noise_profile = noise_profile;
+            else
+                obj.noise_profile = NoiseProfile();
+            end
         end
 
         function clk = syntonize(obj, f_rx, clk)
