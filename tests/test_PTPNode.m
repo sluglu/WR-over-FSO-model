@@ -49,7 +49,7 @@ for i = 1:N
 
     sim_time = i*dt;
     % MASTER step
-    master.step(sim_time);
+    [master, msgs] = master.step(sim_time);
     master_cts(i) = master.timestamper.getCoarsePhase(master.clock);
     master_fts(i) = master.timestamper.getFinePhase(master.clock);
 
@@ -57,7 +57,7 @@ for i = 1:N
     rx_freq = master.clock.f + 10e7;  % example doppler shift
 
     % SLAVE step
-    slave.step(sim_time, rx_freq);
+    [slave, msgs] = slave.step(sim_time, rx_freq);
     slave_cts(i) = slave.timestamper.getCoarsePhase(slave.clock);
     slave_fts(i) = slave.timestamper.getFinePhase(slave.clock);
 

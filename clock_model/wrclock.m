@@ -12,7 +12,7 @@ classdef WRClock
             if nargin > 0
                 obj.f0 = f0;
                 obj.noise_profile = noise_profile;
-            else
+            else 
                 obj.f0 = 125e6;
                 obj.noise_profile = NoiseProfile();
                 t0 = 0;

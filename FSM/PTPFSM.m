@@ -1,4 +1,4 @@
-classdef PTPFSM < handle
+classdef PTPFSM
     properties
         state
         msg_queue
@@ -10,12 +10,12 @@ classdef PTPFSM < handle
             obj.msg_queue = {};
         end
 
-        function msgs = step(obj, sim_time, cts, fts)
+        function [obj, msgs] = step(obj, cts) 
             msgs = {};
-        end
+        end 
 
-        function receive(obj, msg, sim_time)
-            obj.msg_queue{end+1} = msg;
+        function obj = receive(obj, msg, fts)
+            obj.msg_queue{end+1} = struct('msg', msg, 'fts', fts);
         end
     end
 end

@@ -1,28 +1,43 @@
-classdef SlaveNode < PTPNode
+classdef SlaveNode
     properties
+        clock SlaveClock
+        fsm SlaveFSM
+        timestamper Timestamper
         syntonizer L1Syntonizer
+        old_time
     end
 
     methods
         function obj = SlaveNode(clock, timestamper, fsm, syntonizer)
             if nargin > 0
-                args = {clock, timestamper, fsm};
+                obj.clock = clock;
+                obj.timestamper = timestamper;
+                obj.fsm = fsm;
+                obj.syntonizer = syntonizer;
             else
-                args = {MasterClock(), timestamper(), SlaveFSM()};
-                syntonizer = L1Syntonizer();
+                obj.clock = SlaveClock();
+                obj.timestamper = timestamper();
+                obj.fsm = SlaveFSM();
+                obj.syntonizer = L1Syntonizer();
             end
-            obj@PTPNode(args{:});
-            obj.syntonizer = syntonizer;
+            obj.old_time = 0;
         end
 
-        function msgs = step(obj, sim_time, rx_freq)
+        function [obj, msgs] = step(obj, sim_time)
             dt = sim_time - obj.old_time;
-            obj.clock = obj.syntonizer.syntonize(rx_freq, obj.clock);
             obj.clock = obj.clock.advance(dt);
-            cts = obj.timestamper.getCoarsePhase(obj.clock);
-            fts = obj.timestamper.getFinePhase(obj.clock);
-            msgs = obj.fsm.step(sim_time, cts, fts);
+            [cts, fts] = obj.timestamper.getTimestamp(obj.clock);
+            [obj.fsm, msgs] = obj.fsm.step(cts);
             obj.old_time = sim_time;
+        end
+
+        function obj = receive(obj, msg)
+            [cts, fts] = obj.timestamper.getTimestamp(obj.clock);
+            obj.fsm = obj.fsm.receive(msg, fts);
+        end
+
+        function obj = syntonize(obj, rx_freq)
+            obj.clock = obj.clock.syntonize(rx_freq);
         end
     end
 end

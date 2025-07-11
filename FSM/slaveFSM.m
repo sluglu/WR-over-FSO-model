@@ -23,29 +23,26 @@ classdef SlaveFSM < PTPFSM
             obj.last_delay = NaN;
         end
 
-        function msgs = step(obj, sim_time, cts, fts)
+        function [obj, msgs] = step(obj, cts, fts)
             msgs = {};
             remaining_msgs = {};
 
             for i = 1:length(obj.msg_queue)
-                msg = obj.msg_queue{i};
+                msg = obj.msg_queue{i}.msg;
 
                 switch msg.type
                     case 'SYNC'
-                        obj.t2 = sim_time;
+                        obj.t2 = obj.msg_queue{i}.fts;
                         obj.waiting_followup = true;
 
                     case 'FOLLOW_UP'
-                        obj.t1 = msg.t1;
+                        obj.t1 = msg.t1 ;
                         obj.waiting_followup = false;
 
                         % Send DELAY_REQ
-                        obj.t3 = sim_time;
+                        obj.t3 = cts;
                         delay_req = struct( ...
-                            'type', 'DELAY_REQ', ...
-                            'cts', cts, ...
-                            'fts', fts, ...
-                            'timestamp', obj.t3 ...
+                            'type', 'DELAY_REQ' ...
                         );
                         msgs{end+1} = delay_req;
                         obj.waiting_delay_resp = true;
@@ -59,8 +56,11 @@ classdef SlaveFSM < PTPFSM
                         obj.last_delay = ((obj.t2 - obj.t1) + (obj.t4 - obj.t3)) / 2;
                         obj.last_offset = ((obj.t2 - obj.t1) - (obj.t4 - obj.t3)) / 2;
 
-                        fprintf('[SYNCED] Offset = %.3e s | Delay = %.3e s\n', ...
-                            obj.last_offset, obj.last_delay);
+                        %fprintf("t1 = %.9f | t2 = %.9f | t3 = %.9f | t4 = %.9f\n", obj.t1, obj.t2, obj.t3, obj.t4);
+                        %fprintf("Offset = %.6f | Delay = %.6f\n", obj.last_offset, obj.last_delay);
+
+                        %fprintf('[SYNCED] Offset = %.3e s | Delay = %.3e s\n', ...
+                            %obj.last_offset, obj.last_delay);
                 end
             end
 

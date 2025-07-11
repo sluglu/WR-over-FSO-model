@@ -9,7 +9,7 @@ Components implemented :
 - Node object
 
 Components to be implemented : 
-- PTP FSM module (maybe with SimEvents ?)
+- PTP FSM module (bug : weird spike)
 - offset calculation module (input timestamps, with medium solution child class : single-mode fiber; FSO, mmwawe, no noise beacuse numerical ?, output phase offset)
 - offset and frequency correction module (input phase offset and clock, with noise profile ?, update clock)
 - channel model :

@@ -21,6 +21,11 @@ classdef Timestamper
             delta = meas_phi - getCoarsePhase(obj, clk);
             phase = getCoarsePhase(obj, clk) + delta;
         end
+
+        function [cts, fts] = getTimestamp(obj, clk)
+            cts = obj.getCoarsePhase(clk) / (2*pi*clk.f0);
+            fts = obj.getFinePhase(clk) / (2*pi*clk.f0);
+        end
     end
 end
 
