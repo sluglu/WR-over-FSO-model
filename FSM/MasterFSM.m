@@ -17,7 +17,7 @@ classdef MasterFSM < PTPFSM
             obj.next_sync_time = 0;
         end
 
-        function [obj, msgs] = step(obj, cts, fts)
+        function [obj, msgs] = step(obj, cts)
             msgs = {};
 
             if cts >= obj.next_sync_time

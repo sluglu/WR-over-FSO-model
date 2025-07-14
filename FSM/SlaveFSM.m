@@ -23,7 +23,7 @@ classdef SlaveFSM < PTPFSM
             obj.last_delay = NaN;
         end
 
-        function [obj, msgs] = step(obj, cts, fts)
+        function [obj, msgs] = step(obj, cts)
             msgs = {};
             remaining_msgs = {};
 
@@ -55,9 +55,10 @@ classdef SlaveFSM < PTPFSM
                         % Compute offset and delay
                         obj.last_delay = ((obj.t2 - obj.t1) + (obj.t4 - obj.t3)) / 2;
                         obj.last_offset = ((obj.t2 - obj.t1) - (obj.t4 - obj.t3)) / 2;
-
-                        %fprintf("t1 = %.9f | t2 = %.9f | t3 = %.9f | t4 = %.9f\n", obj.t1, obj.t2, obj.t3, obj.t4);
-                        %fprintf("Offset = %.6f | Delay = %.6f\n", obj.last_offset, obj.last_delay);
+                        if obj.verbose
+                            fprintf("t1 = %.9f | t2 = %.9f | t3 = %.9f | t4 = %.9f\n", obj.t1, obj.t2, obj.t3, obj.t4);
+                            fprintf("Offset = %.12f | Delay = %.12f\n", obj.last_offset, obj.last_delay);
+                        end
 
                         %fprintf('[SYNCED] Offset = %.3e s | Delay = %.3e s\n', ...
                             %obj.last_offset, obj.last_delay);

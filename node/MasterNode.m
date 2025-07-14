@@ -23,7 +23,7 @@ classdef MasterNode
             dt = sim_time - obj.old_time;
             obj.clock = obj.clock.advance(dt);
             [cts, fts] = obj.timestamper.getTimestamp(obj.clock);
-            [obj.fsm, msgs] = obj.fsm.step(fts);
+            [obj.fsm, msgs] = obj.fsm.step(cts);
             obj.old_time = sim_time;
         end
 
