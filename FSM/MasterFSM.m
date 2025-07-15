@@ -45,9 +45,9 @@ classdef MasterFSM < PTPFSM
                         'type', 'DELAY_RESP', ...
                         't4', obj.msg_queue{i}.fts ...
                     );
-                    msgs = {delay_resp};
+                    msgs{end+1} = delay_resp;
                 else
-                    remaining_msgs{end+1} = msg;
+                    remaining_msgs{end+1} = obj.msg_queue{i};
                 end
             end
             obj.msg_queue = remaining_msgs;

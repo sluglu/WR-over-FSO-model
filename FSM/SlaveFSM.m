@@ -29,10 +29,11 @@ classdef SlaveFSM < PTPFSM
 
             for i = 1:length(obj.msg_queue)
                 msg = obj.msg_queue{i}.msg;
+                msg_fts = obj.msg_queue{i}.fts;
 
                 switch msg.type
                     case 'SYNC'
-                        obj.t2 = obj.msg_queue{i}.fts;
+                        obj.t2 = msg_fts;
                         obj.waiting_followup = true;
 
                     case 'FOLLOW_UP'
@@ -48,20 +49,26 @@ classdef SlaveFSM < PTPFSM
                         obj.waiting_delay_resp = true;
 
                     case 'DELAY_RESP'
-                        obj.t4 = msg.t4;
-                        obj.waiting_delay_resp = false;
-                        obj.synced = true;
+                        if obj.waiting_delay_resp
+                            obj.t4 = msg.t4;
+                            obj.waiting_delay_resp = false;
+                            obj.synced = true;
 
-                        % Compute offset and delay
-                        obj.last_delay = ((obj.t2 - obj.t1) + (obj.t4 - obj.t3)) / 2;
-                        obj.last_offset = ((obj.t2 - obj.t1) - (obj.t4 - obj.t3)) / 2;
-                        if obj.verbose
-                            fprintf("t1 = %.9f | t2 = %.9f | t3 = %.9f | t4 = %.9f\n", obj.t1, obj.t2, obj.t3, obj.t4);
-                            fprintf("Offset = %.12f | Delay = %.12f\n", obj.last_offset, obj.last_delay);
+                            % Compute offset and delay
+                            obj.last_delay = ((obj.t2 - obj.t1) + (obj.t4 - obj.t3)) / 2;
+                            obj.last_offset = ((obj.t2 - obj.t1) - (obj.t4 - obj.t3)) / 2;
+
+                            if obj.verbose
+                                fprintf("t1 = %.9f | t2 = %.9f | t3 = %.9f | t4 = %.9f\n", obj.t1, obj.t2, obj.t3, obj.t4);
+                                fprintf("Offset = %.12f | Delay = %.12f\n", obj.last_offset, obj.last_delay);
+                                %fprintf('[SYNCED] Offset = %.3e s | Delay = %.3e s\n', ...
+                                %obj.last_offset, obj.last_delay);
+                            end
                         end
 
-                        %fprintf('[SYNCED] Offset = %.3e s | Delay = %.3e s\n', ...
-                            %obj.last_offset, obj.last_delay);
+                    otherwise
+                        % Keep unrecognized messages
+                        remaining_msgs{end+1} = obj.msg_queue{i};
                 end
             end
 
@@ -69,3 +76,5 @@ classdef SlaveFSM < PTPFSM
         end
     end
 end
+
+

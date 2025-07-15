@@ -3,12 +3,14 @@ A MATLAB model for simulating White Rabbit (WR) synchronization in orbital scena
 
 Components implemented :
 - clock module
-- noise profile submodule
-- timestamper module
 - L1_syntonizer module
-- Node object
 
 Components to be implemented : 
+- Node object (probably need rework)
+- noise profile submodule (do i even want to use this ?)
+- timestamper module (need rework : basic -> local ehanced or local + recovered ehanced)
+- 3 info need to go between node : msg, frequency, fractional part of the phase when msg sended
+- phase comparator (local vs recovered)
 - PTP FSM module (bug : weird spike)
 - offset calculation module (input timestamps, with medium solution child class : single-mode fiber; FSO, mmwawe, no noise beacuse numerical ?, output phase offset)
 - offset and frequency correction module (input phase offset and clock, with noise profile ?, update clock)
