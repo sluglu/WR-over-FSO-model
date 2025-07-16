@@ -5,11 +5,11 @@ Components implemented :
 - clock module (include : oscillator model, L1 syntonization, offset correction)
 - Node object (include timestamper, govern clock and fsm)
 - noise profile submodule (for the clocks)
-- PTP FSM module (include ptp fsm, working but maybe causing bug#1)
+- PTP FSM module (include ptp fsm)
 
 Components to be implemented : 
 
-- bug#1 : when no noise there is still e-15 weird periodic noise
+- bug#1 : convergence detection don't working test_PTPFSM.m
 - channel model :
     - doppler_shift (input freq, current time, output freq)
     - delay (input tx time, current time, output rx time)

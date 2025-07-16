@@ -8,6 +8,7 @@ classdef SlaveFSM < PTPFSM
         waiting_followup
         waiting_delay_resp
         synced
+        just_synced  % Flag to indicate fresh sync completion
 
         last_offset
         last_delay
@@ -17,6 +18,7 @@ classdef SlaveFSM < PTPFSM
         function obj = SlaveFSM()
             obj@PTPFSM();
             obj.synced = false;
+            obj.just_synced = false;
             obj.waiting_followup = false;
             obj.waiting_delay_resp = false;
             obj.last_offset = NaN;
@@ -26,7 +28,7 @@ classdef SlaveFSM < PTPFSM
         function [obj, msgs] = step(obj, ts)
             msgs = {};
             remaining_msgs = {};
-            obj.synced = false;
+            obj.just_synced = false;  % Reset flag each step
 
             for i = 1:length(obj.msg_queue)
                 msg = obj.msg_queue{i}.msg;
@@ -38,7 +40,7 @@ classdef SlaveFSM < PTPFSM
                         obj.waiting_followup = true;
 
                     case 'FOLLOW_UP'
-                        obj.t1 = msg.t1 ;
+                        obj.t1 = msg.t1;
                         obj.waiting_followup = false;
 
                         % Send DELAY_REQ
@@ -54,6 +56,7 @@ classdef SlaveFSM < PTPFSM
                             obj.t4 = msg.t4;
                             obj.waiting_delay_resp = false;
                             obj.synced = true;
+                            obj.just_synced = true;  % Mark fresh sync
 
                             % Compute offset and delay
                             obj.last_delay = ((obj.t2 - obj.t1) + (obj.t4 - obj.t3)) / 2;

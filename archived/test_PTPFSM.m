@@ -35,7 +35,7 @@ np_noisy = NoiseProfile(params_noisy);
 np_ideal = NoiseProfile(params_ideal);
 
 clock_master = MasterClock(f0, t0, np_ideal);
-clock_slave  = SlaveClock(f0, t0 + 10, np_noisy);
+clock_slave  = SlaveClock(f0, t0, np_noisy);
 
 %% Create nodes
 master = MasterNode(clock_master, MasterFSM(sync_interval));
@@ -79,9 +79,9 @@ while sim_time < sim_duration
     to_deliver = [msg_queue.delivery_time] == sim_time;
     for j = find(to_deliver)
         if strcmp(msg_queue(j).target, 'master')
-            master = master.receive(msg_queue(j).msg);
+            master = master.receive(msg_queue(j).msg, sim_time);
         else
-            slave = slave.receive(msg_queue(j).msg);
+            slave = slave.receive(msg_queue(j).msg, sim_time);
         end
     end
     % Remove delivered messages from queue
