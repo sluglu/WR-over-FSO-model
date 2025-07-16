@@ -60,8 +60,8 @@ classdef SlaveFSM < PTPFSM
                             obj.last_offset = ((obj.t2 - obj.t1) - (obj.t4 - obj.t3)) / 2;
 
                             if obj.verbose
-                                fprintf("t1 = %.9f | t2 = %.9f | t3 = %.9f | t4 = %.9f\n", obj.t1, obj.t2, obj.t3, obj.t4);
-                                fprintf("Offset = %.12f | Delay = %.12f\n", obj.last_offset, obj.last_delay);
+                                fprintf("t1 = %.9e | t2 = %.9e | t3 = %.9e | t4 = %.9e\n", obj.t1, obj.t2, obj.t3, obj.t4);
+                                fprintf("Offset = %.9e | Delay = %.9e\n", obj.last_offset, obj.last_delay);
                             end
                         end
 

@@ -7,8 +7,8 @@ f0 = 125e6;
 t0 = 0;
 sync_interval = 1;
 delay = 10e-3;
-dtx = 2e-6;
-drx = 1e-6;
+dtx = 2e-3;
+drx = 1e-3;
 
 times = 0:dt:sim_duration;
 
