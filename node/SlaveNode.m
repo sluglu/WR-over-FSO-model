@@ -2,38 +2,36 @@ classdef SlaveNode
     properties
         clock SlaveClock
         fsm SlaveFSM
-        timestamper Timestamper
-        syntonizer L1Syntonizer
         old_time
     end
 
     methods
-        function obj = SlaveNode(clock, timestamper, fsm, syntonizer)
+        function obj = SlaveNode(clock, fsm)
             if nargin > 0
                 obj.clock = clock;
-                obj.timestamper = timestamper;
                 obj.fsm = fsm;
-                obj.syntonizer = syntonizer;
             else
                 obj.clock = SlaveClock();
-                obj.timestamper = timestamper();
                 obj.fsm = SlaveFSM();
-                obj.syntonizer = L1Syntonizer();
             end
             obj.old_time = 0;
         end
 
-        function [obj, msgs] = step(obj, sim_time)
+        function [obj, msgs] = step(obj, sim_time, rx_freq)
             dt = sim_time - obj.old_time;
+            obj.clock = obj.clock.syntonize(rx_freq);
+            if(obj.fsm.synced)
+                obj.clock = obj.clock.correct_offset(obj.fsm.last_offset);
+            end
             obj.clock = obj.clock.advance(dt);
-            [cts, fts] = obj.timestamper.getTimestamp(obj.clock);
-            [obj.fsm, msgs] = obj.fsm.step(cts);
+            ts = obj.clock.phi / (2*pi*obj.clock.f0);
+            [obj.fsm, msgs] = obj.fsm.step(ts);
             obj.old_time = sim_time;
         end
 
         function obj = receive(obj, msg)
-            [cts, fts] = obj.timestamper.getTimestamp(obj.clock);
-            obj.fsm = obj.fsm.receive(msg, fts);
+            ts = obj.clock.phi / (2*pi*obj.clock.f0);
+            obj.fsm = obj.fsm.receive(msg, ts);
         end
 
         function obj = syntonize(obj, rx_freq)

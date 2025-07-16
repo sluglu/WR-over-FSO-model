@@ -3,7 +3,6 @@ classdef WRClock
         f0            % Nominal frequency (Hz)
         f             % Current frequency (Hz)
         phi           % Current phase (radians)
-        phi0          % Initial phase (radians)
         noise_profile NoiseProfile % NoiseProfile object
     end
 
@@ -17,9 +16,8 @@ classdef WRClock
                 obj.noise_profile = NoiseProfile();
                 t0 = 0;
             end
+            obj.phi = 0;
             obj.f = obj.f0;
-            obj.phi0 = t0 * (2*pi*obj.f0);
-            obj.phi = obj.phi0;
             obj = obj.advance(t0);
         end
 
@@ -31,7 +29,6 @@ classdef WRClock
 
         function obj = reset(obj)
             obj.noise_profile.reset()
-            obj.phi = obj.phi0;
             obj.f = obj.f0;
         end
     end

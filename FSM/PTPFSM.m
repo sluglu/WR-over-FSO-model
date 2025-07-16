@@ -1,25 +1,19 @@
 classdef PTPFSM
     properties
-        state
         msg_queue
         verbose
     end
 
     methods
         function obj = PTPFSM()
-            obj.state = 'IDLE';
             obj.msg_queue = {};
             obj.verbose = true;
         end
 
-        function [obj, msgs] = step(obj, cts) 
-            msgs = {};
-        end 
-
-        function print_msg(obj, msg, fts)
+        function print_msg(obj, msg, ts)
             % Display base info
-            fprintf('[%s] Received message at fts = %.9f | type = %s', ...
-                class(obj), fts, msg.type);
+            fprintf('[%s] Received message at ts = %.9f | type = %s', ...
+                class(obj), ts, msg.type);
         
             % Display optional timestamp fields if present
             for field = {'t1', 't2', 't3', 't4'}
@@ -31,10 +25,10 @@ classdef PTPFSM
             fprintf('\n');
         end
 
-        function obj = receive(obj, msg, fts)
-            obj.msg_queue{end+1} = struct('msg', msg, 'fts', fts);
+        function obj = receive(obj, msg, ts)
+            obj.msg_queue{end+1} = struct('msg', msg, 'ts', ts);
             if obj.verbose
-                print_msg(obj, msg, fts)
+                print_msg(obj, msg, ts)
             end
 
         end

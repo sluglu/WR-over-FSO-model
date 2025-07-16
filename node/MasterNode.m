@@ -2,18 +2,15 @@ classdef MasterNode
     properties
         clock MasterClock
         fsm MasterFSM
-        timestamper Timestamper
         old_time
     end
     methods
-        function obj = MasterNode(clock, timestamper, fsm)
+        function obj = MasterNode(clock, fsm)
             if nargin > 0
                 obj.clock = clock;
-                obj.timestamper = timestamper;
                 obj.fsm = fsm;
             else
                 obj.clock = MasterClock();
-                obj.timestamper = timestamper();
                 obj.fsm = MasterFSM();
             end
             obj.old_time = 0;
@@ -22,14 +19,14 @@ classdef MasterNode
         function [obj, msgs] = step(obj, sim_time)
             dt = sim_time - obj.old_time;
             obj.clock = obj.clock.advance(dt);
-            [cts, fts] = obj.timestamper.getTimestamp(obj.clock);
-            [obj.fsm, msgs] = obj.fsm.step(cts);
+            ts = obj.clock.phi / (2*pi*obj.clock.f0);
+            [obj.fsm, msgs] = obj.fsm.step(ts);
             obj.old_time = sim_time;
         end
 
         function obj = receive(obj, msg)
-            [cts, fts] = obj.timestamper.getTimestamp(obj.clock);
-            obj.fsm = obj.fsm.receive(msg, fts);
+            ts = obj.clock.phi / (2*pi*obj.clock.f0);
+            obj.fsm = obj.fsm.receive(msg, ts);
         end
     end
 end

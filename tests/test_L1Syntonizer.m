@@ -26,8 +26,6 @@ params_slave = struct(...
 np_slave = NoiseProfile(params_slave);
 clk_slave = SlaveClock(f0, t0, np_slave);
 
-synt = L1Syntonizer(np_master);
-
 %% BUFFERS
 t_vec = (0:N-1) * dt + t0;
 
@@ -54,7 +52,7 @@ for i = 1:N
 
     % syntonization
     if i > N/2
-        clk_slave = synt.syntonize(clk_master.f, clk_slave);
+        clk_slave = clk_slave.syntonize(clk_master.f);
     end
 
     % Advance clocks
