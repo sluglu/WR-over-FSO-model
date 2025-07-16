@@ -6,10 +6,13 @@ Components implemented :
 - Node object (include timestamper, govern clock and fsm)
 - noise profile submodule (for the clocks)
 - PTP FSM module (include ptp fsm)
+- experiment#1 : offset accuracy / delay sigma (fast changing delay and delay asymetry) (maybe need reworking or optimisation)
 
 Components to be implemented : 
 
-- bug#1 : convergence detection don't working test_PTPFSM.m
+- experiment#2 : offset accuracy / frequency sigma (doppler)
+- experiment#3 : exp#1 and exp#2 in a color map
+
 - channel model :
     - doppler_shift (input freq, current time, output freq)
     - delay (input tx time, current time, output rx time)
