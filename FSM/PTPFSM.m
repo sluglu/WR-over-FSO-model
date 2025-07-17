@@ -5,9 +5,13 @@ classdef PTPFSM
     end
 
     methods
-        function obj = PTPFSM()
+        function obj = PTPFSM(verbose)
             obj.msg_queue = {};
-            obj.verbose = true;
+            if nargin > 0
+                obj.verbose = verbose;
+            else
+                obj.verbose = true;
+            end
         end
 
         function print_msg(obj, msg, ts)

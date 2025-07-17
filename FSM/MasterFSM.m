@@ -5,10 +5,13 @@ classdef MasterFSM < PTPFSM
     end
 
     methods
-        function obj = MasterFSM(sync_interval)
+        function obj = MasterFSM(sync_interval, verbose)
             obj@PTPFSM();
             if nargin > 0
                 obj.sync_interval = sync_interval;
+                if nargin > 1
+                    obj.verbose = verbose;
+                end
             else
                 obj.sync_interval = 1;
             end

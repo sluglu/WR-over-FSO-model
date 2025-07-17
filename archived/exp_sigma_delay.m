@@ -207,7 +207,8 @@ end
 %% sim setup
 
 %sigma = [0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000, 100000] * 0.00000001;
-delay_std = (1:50:100000)*1e-11;
+%delay_std = (1:50:100000)*1e-11;
+delay_std = linspace(1e-12, 1e-2, 1000);
 
 off_error_mean = nan(length(delay_std));
 i = 1;
@@ -224,8 +225,8 @@ end
 
 figure;
 plot(delay_std, off_error_mean, 'r-', 'LineWidth', 1.5);
-xlabel('Delay STD');
+xlabel('Delay STD (s)');
 ylabel('Offset Error (s)');
 title('PTP Offset Error / Delay STD');
 grid on;
-xscale log;
+%xscale log;

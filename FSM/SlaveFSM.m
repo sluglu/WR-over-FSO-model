@@ -15,8 +15,13 @@ classdef SlaveFSM < PTPFSM
     end
 
     methods
-        function obj = SlaveFSM()
-            obj@PTPFSM();
+        function obj = SlaveFSM(verbose)
+            if nargin > 0
+                args = {verbose};
+            else
+                args = {};
+            end
+            obj@PTPFSM(args{:});
             obj.synced = false;
             obj.just_synced = false;
             obj.waiting_followup = false;
