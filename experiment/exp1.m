@@ -2,9 +2,9 @@ clear; clc;
 
 %% Parameters main sim
 verbose = false;
-delay_std = logspace(-12, -2, 100); % Use fewer points but logarithmic spacing
+asym_delay_std = logspace(-12, -2, 100); % Use fewer points but logarithmic spacing
 
-function delay_error_all = run_sim_loop(delay_std, verbose)
+function delay_error_all = run_sim_loop(asym_delay_std, verbose)
     %% Parameters for individual sim
     sim_duration = 10;     % seconds
     dt = 0.001;            % time step
@@ -12,8 +12,7 @@ function delay_error_all = run_sim_loop(delay_std, verbose)
     t0 = 0;
     sync_interval = 1;
     delay_a = 10e-3;
-    dtx = 2e-3;
-    drx = 1e-3;
+    min_msg_interval = 1e-3;
     
     convergence_threshold = 1e-9;
     
@@ -66,7 +65,7 @@ function delay_error_all = run_sim_loop(delay_std, verbose)
         [slave, slave_msgs] = slave.step(sim_time, master.clock.f);
         
         % Pre-calculate delay once per iteration
-        delay = delay_a + randn * delay_std;
+        delay = delay_a + randn * asym_delay_std;
         
         % Enqueue messages from master
         for j = 1:length(master_msgs)
@@ -80,7 +79,7 @@ function delay_error_all = run_sim_loop(delay_std, verbose)
             end
             msg_queue{queue_size, 1} = 'slave';
             msg_queue{queue_size, 2} = master_msgs{j};
-            msg_queue{queue_size, 3} = sim_time + delay + drx + dtx*j;
+            msg_queue{queue_size, 3} = sim_time + delay + min_msg_interval*j;
         end
         
         % Enqueue messages from slave
@@ -95,7 +94,7 @@ function delay_error_all = run_sim_loop(delay_std, verbose)
             end
             msg_queue{queue_size, 1} = 'master';
             msg_queue{queue_size, 2} = slave_msgs{j};
-            msg_queue{queue_size, 3} = sim_time + delay + drx + dtx*j;
+            msg_queue{queue_size, 3} = sim_time + delay + min_msg_interval*j;
         end
         
         % Deliver messages whose time has come
@@ -185,11 +184,11 @@ end
 
 %% Main simulation setup
 
-off_error_mean = nan(length(delay_std), 1);
-length_delay_std = length(delay_std);
+off_error_mean = nan(length(asym_delay_std), 1);
+length_asym_delay_std = length(asym_delay_std);
 
 % Create progress tracker object
-progress = ProgressTracker(length_delay_std);
+progress = ProgressTracker(length_asym_delay_std);
 
 % Create DataQueue and bind to tracker
 dq = parallel.pool.DataQueue;
@@ -198,19 +197,19 @@ afterEach(dq, @(~) progress.update());
 % Start waitbar
 progress.start();
 
-fprintf('Starting simulation with %d delay standard deviation values...\n', length(delay_std));
+fprintf('Starting simulation with %d asymetric delay standard deviation values...\n', length(asym_delay_std));
 
 
 
 %% Simulation loop with progress tracking
 tic; % Start timing
-parfor i = 1:length(delay_std)
+parfor i = 1:length(asym_delay_std)
     try
-        off_error = run_sim_loop(delay_std(i), verbose);
+        off_error = run_sim_loop(asym_delay_std(i), verbose);
         if ~isempty(off_error)
             off_error_mean(i) = abs(mean(off_error));
         end
-        fprintf("Completed simulation %d/%d \n", i, length_delay_std);
+        fprintf("Completed simulation %d/%d \n", i, length_asym_delay_std);
     catch ME
         fprintf("Error in simulation %d: %s\n", i, ME.message);
         off_error_mean(i) = NaN;
@@ -230,21 +229,21 @@ figure('Position', [100 100 1200 800]);
 % Main plot
 %subplot(2,1,1);
 valid_indices = ~isnan(off_error_mean);
-loglog(delay_std(valid_indices), off_error_mean(valid_indices), 'b-', 'LineWidth', 2);
+loglog(asym_delay_std(valid_indices), off_error_mean(valid_indices), 'b-', 'LineWidth', 2);
 hold on;
 grid on;
-xlabel('Delay Standard Deviation (s)');
+xlabel('Asymetric Delay Standard Deviation (s)');
 ylabel('Mean Absolute Offset Error (s)');
-title('PTP Offset Error vs Delay Standard Deviation');
+title('PTP Offset Error vs Asymetric Delay Standard Deviation');
 
 % Add trend line if possible
 if sum(valid_indices) > 10
     % Fit a line in log space
-    log_delay = log10(delay_std(valid_indices));
+    log_delay = log10(asym_delay_std(valid_indices));
     log_error = log10(off_error_mean(valid_indices));
     p = polyfit(log_delay, log_error, 1);
     trend_line = 10.^(polyval(p, log_delay));
-    plot(delay_std(valid_indices), trend_line, 'r--', 'LineWidth', 1.5);
+    plot(asym_delay_std(valid_indices), trend_line, 'r--', 'LineWidth', 1.5);
     legend('Simulation Data', sprintf('Trend (slope = %.2f)', p(1)), 'Location', 'best');
 end
 
@@ -264,5 +263,5 @@ fprintf('Median offset error: %.3e s\n', median(off_error_mean(valid_indices)));
 fprintf('Mean offset error: %.3e s\n', mean(off_error_mean(valid_indices)));
 
 %% Save results
-save('exp1_PTP_offset_error_vs_delay_STD.mat', 'delay_std', 'off_error_mean', 'elapsed_time');
-fprintf('Results saved to exp1_PTP_offset_error_vs_delay_STD.mat\n');
+save('exp1_PTP_offset_error_vs_asym_delay_STD.mat', 'asym_delay_std', 'off_error_mean', 'elapsed_time');
+fprintf('Results saved to exp1_PTP_offset_error_vs_asym_delay_STD.mat\n');
