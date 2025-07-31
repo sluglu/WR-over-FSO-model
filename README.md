@@ -6,17 +6,16 @@ Components implemented :
 - Node object (include timestamper, govern clock and fsm)
 - noise profile submodule (for the clocks)
 - PTP FSM module (include ptp fsm)
-- experiment#1 : PTP offset error / delay STD (fast changing delay and delay asymetry)
+- experiment#1 : PTP offset error / asymetric delay STD (fast changing delay and delay asymetry)
 
 Components to be implemented : 
 
-- experiment#2 : offset accuracy / frequency sigma (doppler) ??
-- experiment#3 : exp#1 and exp#2 in a color map ??
+- orbit_model :
+    - cross-plane position function from orbital parameter
+    - compute intercept from position function and t0
+    - check LOS
 
-- channel model :
-    - doppler_shift (input freq, current time, output freq)
-    - delay (input tx time, current time, output rx time)
-    - calculate channel (calculate delay and doppler from given satellite scenario and time vector, output two vector)
+- experiment#2 : offset error plot and mean with different orbital scenario
 
-the sytem is modeled as perfect : - Perfect L1 syntonization (slave perfectly recover frequency)
-                                  - Timestamp are fractional (not limited to clock cycle resolution, no need for phase comparator system)
+the sytem is modeled as perfect : - Perfect L1 syntonization (slave perfectly recover incoming frequency)
+                                  - Timestamp are fractional (not limited to clock cycle resolution)

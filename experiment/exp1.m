@@ -4,7 +4,7 @@ clear; clc;
 verbose = false;
 asym_delay_std = logspace(-12, -2, 100); % Use fewer points but logarithmic spacing
 
-function delay_error_all = run_sim_loop(asym_delay_std, verbose)
+function off_error = run_sim_loop(asym_delay_std, verbose)
     %% Parameters for individual sim
     sim_duration = 10;     % seconds
     dt = 0.001;            % time step
@@ -13,8 +13,6 @@ function delay_error_all = run_sim_loop(asym_delay_std, verbose)
     sync_interval = 1;
     delay_a = 10e-3;
     min_msg_interval = 1e-3;
-    
-    convergence_threshold = 1e-9;
     
     %% Noise profiles
     params_noisy = struct(...
@@ -140,46 +138,9 @@ function delay_error_all = run_sim_loop(asym_delay_std, verbose)
         
         i = i + 1;
     end
-    
-    % Trim arrays to actual size
-    actual_size = i - 1;
-    times = times(1:actual_size);
-    ptp_offset_log = ptp_offset_log(1:actual_size);
-    real_offset = real_offset(1:actual_size);
-    
-    %% Calculate errors (exclude initial transient period)
-    first_sync_idx = find(~isnan(ptp_offset_log), 1);
-    if ~isempty(first_sync_idx)
-        % Find when system has converged
-        convergence_idx = first_sync_idx;
-        
-        % Look for when offset becomes small and stays there
-        for idx = first_sync_idx:length(ptp_offset_log)
-            if abs(ptp_offset_log(idx)) < convergence_threshold
-                convergence_idx = idx;
-                break;
-            end
-        end
-        
-        % Use data after convergence for statistics
-        analysis_start = convergence_idx + 50;
-        
-        if analysis_start < length(times)
-            analysis_indices = analysis_start:length(times);
-            
-            off_error = real_offset(analysis_indices) - ptp_offset_log(analysis_indices);
-            
-            % Remove NaN values
-            off_error = off_error(~isnan(off_error));
-            
-            % Return the offset error for analysis
-            delay_error_all = off_error;
-        else
-            delay_error_all = [];
-        end
-    else
-        delay_error_all = [];
-    end
+
+    off_error = real_offset - ptp_offset_log;
+    off_error = off_error(~isnan(off_error));
 end
 
 %% Main simulation setup
@@ -247,13 +208,24 @@ if sum(valid_indices) > 10
     legend('Simulation Data', sprintf('Trend (slope = %.2f)', p(1)), 'Location', 'best');
 end
 
-% Statistics subplot
-% subplot(2,1,2);
-% histogram(log10(off_error_mean(valid_indices)), 20);
-% xlabel('log10(Mean Absolute Offset Error)');
-% ylabel('Frequency');
-% title('Distribution of Offset Errors');
-% grid on;
+% Sample index table
+num_samples = 10;
+sample_indices = round(linspace(1, length(asym_delay_std), num_samples));
+sampled_std   = asym_delay_std(sample_indices(:));
+sampled_error = off_error_mean(sample_indices(:));
+sampled_log_time = log10(sampled_std(:));
+T_sample = table(sample_indices(:), sampled_std(:), sampled_error(:), ...
+    'VariableNames', {'Index', 'AsymDelayStd (s)', 'MeanOffsetError (s)'});
+
+f = figure('Name', 'Sampled Offset Error Table', 'NumberTitle', 'off', ...
+           'Position', [100, 100, 700, 250]);
+
+uitable(f, ...
+    'Data', T_sample{:,:}, ...
+    'ColumnName', T_sample.Properties.VariableNames, ...
+    'Units', 'normalized', ...
+    'Position', [0 0 1 1], ...
+    'FontSize', 12);
 
 % Display summary statistics
 fprintf('\nSummary Statistics:\n');
