@@ -361,15 +361,15 @@ if ~isempty(first_sync_idx)
     fprintf('Frequency Error    : Mean = %.3e Hz, Std = %.3e Hz\n', mean_freq_err, std_freq_err);
     fprintf('Delay Error        : Mean = %.3e s, Std = %.3e s\n', mean_delay_err, std_delay_err);
     fprintf('Offset Error       : Mean = %.3e s, Std = %.3e s\n', mean_off_err, std_off_err);
-    fprintf('Max Offset Error   : %.3e s\n', max_offset_err, max_offset_err);
-    fprintf('RMS Offset Error   : %.3e s\n', rms_offset_err, rms_offset_err);
+    fprintf('Max Offset Error   : %.3e s\n', max_offset_err);
+    fprintf('RMS Offset Error   : %.3e s\n', rms_offset_err);
     
     fprintf('\n--- Full Simulation Statistics (including transient) ---\n');
     fprintf('Frequency Error    : Mean = %.3e Hz, Std = %.3e Hz\n', mean(freq_error_all), std(freq_error_all));
     fprintf('Delay Error        : Mean = %.3e s, Std = %.3e s\n', mean(delay_error_all), std(delay_error_all));
     fprintf('Offset Error       : Mean = %.3e s, Std = %.3e s\n', mean(off_error_all), std(off_error_all));
-    fprintf('Max Offset Error   : %.3e s\n', max(abs(off_error_all)), max(abs(off_error_all)));
-    fprintf('RMS Offset Error   : %.3e s\n', sqrt(mean(off_error_all.^2)), sqrt(mean(off_error_all.^2)));
+    fprintf('Max Offset Error   : %.3e s\n', max(abs(off_error_all)));
+    fprintf('RMS Offset Error   : %.3e s\n', sqrt(mean(off_error_all.^2)));
     
     fprintf('\n--- Convergence Performance ---\n');
     if ~isnan(time_to_converge)
