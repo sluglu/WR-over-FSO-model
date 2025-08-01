@@ -156,7 +156,7 @@ if ~isempty(first_sync_idx)
     end
     
     %% Plot results
-    figure('Name', 'PTP Synchronization Analysis', 'Position', [100 100 1400 1200]);
+    figure('Name', 'PTP Synchronization Analysis', 'Position', [0 0 1000 800]);
     
     % Plot 1: Clock Time Evolution
     subplot(3,3,1);
