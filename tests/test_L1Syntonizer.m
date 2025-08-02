@@ -64,7 +64,7 @@ end
 
 center_value = t_vec(N/2);
 
-figure('Name', 'L1 Syntonizer Test', 'Position', [100 100 1300 1000]);
+figure('Name', 'L1 Syntonizer Test', 'Position', [100 -100 1300 1000]);
 
 % --- 1. Frequency
 subplot(3,1,1);

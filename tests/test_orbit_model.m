@@ -1,12 +1,13 @@
 clear; clc; close all;
 
+%% Sim parameters
+dt = 20; %in seconds
+sim_duration = 4; %in hours
+
 %% Constants
 deg = pi/180;
 rE = 6371e3;             % Earth radius [m]
 c = 299792458;           % Speed of light [m/s]
-tspan = 0:20:4*3600;     % 4 hours at 20s resolution
-N = length(tspan);
-colors = lines(4);
 
 %% Scenario definitions
 scenarios = {
@@ -16,9 +17,17 @@ scenarios = {
     "Polar Orbit (counter-rotating)",       rE+800e3, rE+800e3, 90*deg, -90*deg,     0,         0,       0,       0;
 };
 
+% "Polar Orbit (counter-rotating)",       rE+800e3, rE+800e3, 90*deg, -90*deg,     0,         0,       0,       0;
+
+%% Sim
+n_scenarios = size(scenarios,1);
+tspan = 0:dt:sim_duration*3600;
+N = length(tspan);
+colors = lines(n_scenarios);
+
 figure('Position', [100, 100, 1400, 900]);
 
-for s = 1:size(scenarios,1)
+for s = 1:n_scenarios
     %% Unpack scenario
     name = scenarios{s,1};
     r1_val = scenarios{s,2}; r2_val = scenarios{s,3};
@@ -32,7 +41,7 @@ for s = 1:size(scenarios,1)
     [r1, r2] = generate_position_functions(params1, params2);
 
     %% LOS Intervals and Flags
-    [los_intervals, los_flags]  = compute_los_intervals(r1, r2, [tspan(1), tspan(end)], 20);
+    [los_intervals, los_flags]  = compute_los_intervals(r1, r2, tspan);
 
     %% Simulate positions and delays
     pos1 = zeros(3, N);
@@ -59,7 +68,7 @@ for s = 1:size(scenarios,1)
     idel = i3d + 2;
 
     %% 3D Plot
-    subplot(4,3,i3d); hold on;
+    subplot(n_scenarios,3,i3d); hold on;
     plot3(pos1(1,:), pos1(2,:), pos1(3,:), '-', 'Color', colors(s,:), 'LineWidth', 1.2);
     plot3(pos2(1,:), pos2(2,:), pos2(3,:), '--', 'Color', colors(s,:), 'LineWidth', 1.2);
 
@@ -81,16 +90,14 @@ for s = 1:size(scenarios,1)
     title(sprintf('[%d] %s', s, name), 'FontWeight', 'bold', 'Interpreter', 'none');    
 
     %% Orbital parameters text
-    % Get reference point
+    % Get reference point (bug: break if n_scenarios ~= 4)
     ax = gca;
     ax_pos = get(ax, 'Position');  % [left bottom width height]
-    zl = zlim(ax);  % [z_min, z_max]
-    z_ref1 = zl(1) + 0.6 * (zl(2) - zl(1));
-    y_norm1 = ax_pos(2) + ax_pos(4) * (z_ref1 - zl(1)) / (zl(2) - zl(1));
-    z_ref2 = zl(1) + 0 * (zl(2) - zl(1));
-    y_norm2 = ax_pos(2) + ax_pos(4) * (z_ref2 - zl(1)) / (zl(2) - zl(1));
-    x_norm = ax_pos(1) - 0.10;
+    x_norm = ax_pos(1) - 0.4/n_scenarios;
     x_norm = max(0, x_norm);
+    y_norm1 = ax_pos(2) + 2*ax_pos(4)/3;
+    y_norm2 = ax_pos(2);
+    
 
     % Define orbital parameters text
     str1 = sprintf(['\\bfOrbit 1:\\rm\n', ...
@@ -110,27 +117,27 @@ for s = 1:size(scenarios,1)
     % Add annotation to figure (outside axes)
     annotation('textbox', [x_norm, y_norm1, 0.1, 0.1], ...
         'String', str1, ...
-        'FontSize', 10, ...
+        'FontSize', min(20,40/n_scenarios), ...
         'EdgeColor', 'none', ...
         'Interpreter', 'tex', ...
         'FitBoxToText','on');
 
     annotation('textbox', [x_norm, y_norm2, 0.1, 0.1], ...
         'String', str2, ...
-        'FontSize', 10, ...
+        'FontSize', min(20,40/n_scenarios), ...
         'EdgeColor', 'none', ...
         'Interpreter', 'tex', ...
         'FitBoxToText','on');
 
     %% LOS over time
-    subplot(4,3,ilos);
+    subplot(n_scenarios,3,ilos);
     area(tspan/60, los_flags, 'FaceColor', colors(s,:), 'FaceAlpha', 0.3, 'EdgeColor', colors(s,:));
     ylim([-0.1, 1.1]); grid on;
     xlabel('Time [min]'); ylabel('LOS');
     title('LOS over Time');
 
     %% Delay over time
-    subplot(4,3,idel);
+    subplot(n_scenarios,3,idel);
     plot(tspan/60, delays, 'Color', colors(s,:), 'LineWidth', 1.5);
     xlabel('Time [min]'); ylabel('Delay [s]');
     title('Propagation Delay'); grid on;

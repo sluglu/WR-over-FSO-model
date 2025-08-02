@@ -295,8 +295,6 @@ if ~isempty(first_sync_idx)
         grid on;
     end
     
-    sgtitle('PTP Synchronization Performance Analysis');
-    
     %% Additional Metrics
     
     % Basic error statistics

@@ -45,7 +45,7 @@ for i = 1:N
 end
 
 %% PLOTS
-figure('Name', 'Clock Phase Component Breakdown', 'Position', [100 100 1300 1000]);
+figure('Name', 'Clock Phase Component Breakdown', 'Position', [100 -100 1300 1000]);
 % --- 1. Phase ideal vs noisy
 subplot(2,3,1);
 plot(t_vec, phi_ideal, 'b--', t_vec, phi_noisy, 'r');
@@ -97,9 +97,6 @@ plot(t_vec(zoom_idx), ideal_signal(zoom_idx), 'b--', ...
 xlabel('Time (s)'); ylabel('Amplitude');
 legend('Ideal','Noisy'); title('Signal (Zoomed In)');
 
-
-
-sgtitle('Clock Phase Model — Full Diagnostic Comparison');
 
 %% METRICS: Phase Error and Frequency Drift
 % Phase Error
