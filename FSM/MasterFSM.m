@@ -34,7 +34,7 @@ classdef MasterFSM < PTPFSM
                 );
 
                 msgs = {sync_msg, followup_msg};
-                obj.next_sync_time = obj.next_sync_time + obj.sync_interval;
+                obj.next_sync_time = ts + obj.sync_interval;
             end
 
             % Respond to DELAY_REQ
