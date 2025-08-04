@@ -23,7 +23,7 @@ scenarios = {
     "Polar Orbit (counter-rotating)",       rE+800e3, rE+800e3, 90*deg, -90*deg,     0,         0,       0,       0;
 };
 
-scenario_idx = 1; % Select scenario to simulate
+scenario_idx = 3; % Select scenario to simulate
 fprintf('Simulating scenario: %s\n', scenarios{scenario_idx,1});
 
 
@@ -142,9 +142,10 @@ function [results] = simulate_ptp_continuous(sim_duration, ptp_params, scenario)
                     temp_queue(1:queue_size-1, :) = msg_queue(1:queue_size-1, :);
                     msg_queue = temp_queue;
                 end
+                [prop, ~, ~, ~] = compute_propagation_delay(r1, r2, sim_time + (j-1)*min_msg_interval);
                 msg_queue{queue_size, 1} = 'slave';
                 msg_queue{queue_size, 2} = master_msgs{j};
-                msg_queue{queue_size, 3} = sim_time + propagation_delays(i) + j*min_msg_interval;
+                msg_queue{queue_size, 3} = sim_time + prop + (j-1)*min_msg_interval;
             end
             
             for j = 1:length(slave_msgs)
@@ -155,9 +156,10 @@ function [results] = simulate_ptp_continuous(sim_duration, ptp_params, scenario)
                     temp_queue(1:queue_size-1, :) = msg_queue(1:queue_size-1, :);
                     msg_queue = temp_queue;
                 end
+                [prop, ~, ~, ~] = compute_propagation_delay(r1, r2, sim_time + (j-1)*min_msg_interval);
                 msg_queue{queue_size, 1} = 'master';
                 msg_queue{queue_size, 2} = slave_msgs{j};
-                msg_queue{queue_size, 3} = sim_time + propagation_delays(i);
+                msg_queue{queue_size, 3} = sim_time + prop + (j-1)*min_msg_interval;
             end
             
             % Deliver messages
@@ -322,12 +324,13 @@ grid on;
 subplot(2,3,[4,6]);
 hold on;
 % LOS background area (no plot data, just visual)
-area(results.tspan/60, results.los_flags, 'FaceColor', [0.8 0.8 0.8], 'FaceAlpha', 0.3, 'EdgeColor', 'none', 'DisplayName', 'LOS Intervals');
+ptp_valid = ~isnan(results.ptp_offset);
+area(results.tspan/60, results.los_flags * max(results.ptp_offset(ptp_valid)), 'FaceColor', [0.8 0.8 0.8], 'FaceAlpha', 0.3, 'EdgeColor', 'none', 'DisplayName', 'LOS Intervals');
 
 % Clock offset plots
 plot(results.times/60, results.real_offset, 'r-', 'LineWidth', 1.5, 'DisplayName', 'True Offset');
 
-ptp_valid = ~isnan(results.ptp_offset);
+
 plot(results.times(ptp_valid)/60, results.ptp_offset(ptp_valid), 'b-', 'LineWidth', 1.5, 'DisplayName', 'PTP Estimate');
 
 ylabel('Clock Offset [s]');
