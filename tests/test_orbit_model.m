@@ -54,7 +54,7 @@ for s = 1:n_scenarios
         pos2(:,k) = r2(t);
         if los_flags(k)
             try
-                [dt, ~, ~, ~] = compute_propagation_delay(r1, r2, t);
+                [dt, ~, ~, ~] = compute_propagation_delay(r1, r2, t, NaN);
                 delays(k) = dt;
             catch
                 delays(k) = NaN;

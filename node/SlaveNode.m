@@ -2,7 +2,6 @@ classdef SlaveNode
     properties
         clock SlaveClock
         fsm SlaveFSM
-        last_correction_time  % Track when we last applied correction
     end
 
     methods
@@ -14,22 +13,9 @@ classdef SlaveNode
                 obj.clock = SlaveClock();
                 obj.fsm = SlaveFSM();
             end
-            obj.last_correction_time = -inf;  % Initialize to ensure first correction
         end
 
-        function [obj, msgs] = step(obj, sim_time, rx_freq)
-            % Apply syntonization if frequency is provided
-            if nargin > 2 && ~isempty(rx_freq)
-                obj.clock = obj.clock.syntonize(rx_freq);
-            end
-
-            % Apply offset correction only once per sync cycle
-            if obj.fsm.synced && sim_time > obj.last_correction_time
-                obj.clock = obj.clock.correct_offset(obj.fsm.last_offset);
-                obj.last_correction_time = sim_time;
-                obj.fsm.synced = false;  % Reset sync flag after correction
-            end
-
+        function [obj, msgs] = step(obj, sim_time)
             % Advance clock to current simulation time
             dt = sim_time - (obj.clock.phi / (2*pi*obj.clock.f0));
             obj = obj.advance_time(dt);
@@ -59,6 +45,14 @@ classdef SlaveNode
         
         function obj = syntonize(obj, rx_freq)
             obj.clock = obj.clock.syntonize(rx_freq);
+        end
+
+        function obj = offset_correction(obj)
+            % Apply offset correction only once per sync cycle
+            if obj.fsm.synced
+                obj.clock = obj.clock.correct_offset(obj.fsm.last_offset);
+                obj.fsm.synced = false;  % Reset sync flag after correction
+            end
         end
     end
 end

@@ -12,7 +12,8 @@ Components implemented :
 
 Components to be implemented : 
 
-- experiment#2 or #3 : multiple orbital scenario and/or sync_interval (parrallelize)
+- experiment#3 : multiple sync_interval for given scenario (parrallelize)
+- TODO : plot the fwd and bwd prop delay with new compute loop
 
 
 the sytem is modeled as perfect (white rabbit work perfectly and in this case how PTP react): 
