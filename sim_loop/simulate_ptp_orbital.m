@@ -1,15 +1,19 @@
-function [results] = simulate_ptp_orbital(sim_duration, ptp_params, scenario)
+function [results] = simulate_ptp_orbital(sim_params, ptp_params, scenario)
+    % Extract sim parameters
+    dt_ptp = sim_params.dt_ptp;
+    dt_orbital = sim_params.dt_orbital;
+    sim_duration = sim_params.sim_duration;
+    min_los_duration = sim_params.min_los_duration;
 
-    % Extract parameters
-    dt_ptp = ptp_params.dt_ptp;
-    dt_orbital = ptp_params.dt_orbital;
+    % Extract ptp parameters
     f0 = ptp_params.f0;
     sync_interval = ptp_params.sync_interval;
     verbose = ptp_params.verbose;
     min_msg_interval = ptp_params.min_msg_interval;
-    min_los_duration = ptp_params.min_los_duration;
+    master_noise_profile = ptp_params.master_noise_profile;
+    slave_noise_profile = ptp_params.slave_noise_profile;
 
-    % Unpack Selected Scenario
+    % Extract orbital scenario parameters
     r1_val = scenario(2); r2_val = scenario(3);
     i1 = scenario(4);     i2 = scenario(5);
     th1 = scenario(6);    th2 = scenario(7);
@@ -18,6 +22,13 @@ function [results] = simulate_ptp_orbital(sim_duration, ptp_params, scenario)
     params1 = struct('r', r1_val, 'i', i1, 'theta0', th1, 'RAAN', omega1);
     params2 = struct('r', r2_val, 'i', i2, 'theta0', th2, 'RAAN', omega2);
     
+    % Initialize PTP components
+    clock_master = MasterClock(f0, 0, master_noise_profile);
+    clock_slave = SlaveClock(f0, 0, slave_noise_profile);
+    
+    master = MasterNode(clock_master, MasterFSM(sync_interval, verbose));
+    slave = SlaveNode(clock_slave, SlaveFSM(verbose));
+
     % Generate Orbital Functions and LOS Data
     [r1, r2] = generate_position_functions(params1, params2);
     tspan = 0:dt_orbital:sim_duration*3600;
@@ -38,17 +49,6 @@ function [results] = simulate_ptp_orbital(sim_duration, ptp_params, scenario)
     
     fprintf('Found %d valid LOS intervals (>= %.1f s duration)\n', size(valid_intervals,1), min_los_duration);
 
-    
-    
-    % Initialize PTP components
-    np_ideal = NoiseProfile(struct('delta_f0', 0, 'alpha', 0, 'sigma_rw', 0, 'sigma_jitter', 0));
-    
-    clock_master = MasterClock(f0, 0, np_ideal);
-    clock_slave = SlaveClock(f0, 0, np_ideal);
-    
-    master = MasterNode(clock_master, MasterFSM(sync_interval, verbose));
-    slave = SlaveNode(clock_slave, SlaveFSM(verbose));
-    
     % Pre-allocate arrays for entire simulation
     total_duration = sim_duration * 3600;
     max_steps = ceil(total_duration / dt_ptp) + 1000;

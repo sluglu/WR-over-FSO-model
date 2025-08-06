@@ -8,11 +8,9 @@ Components implemented :
 - PTP FSM module
 - experiment#1 : PTP offset error / asymetric delay STD (fast changing delay and delay asymetry)
 - orbit model
-- experiment#2 : offset error / time for given orbital scenario
+- experiment#2 : PTP + orbital scenario (all parameters exposed)
 
 Components to be implemented : 
-
-- experiment#3 : multiple sync_interval for given scenario (parrallelize)
 
 
 the sytem is modeled as perfect (white rabbit work perfectly and in this case how PTP react): 
