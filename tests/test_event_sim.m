@@ -54,7 +54,7 @@ while sim_time < sim_duration
     
     % Step master and slave nodes
     [master, master_msgs] = master.step(sim_time);
-    [slave, slave_msgs] = slave.step(sim_time, master.clock.f);
+    [slave, slave_msgs] = slave.step(sim_time);
 
     % Check if slave just completed a sync
     if slave.fsm.just_synced

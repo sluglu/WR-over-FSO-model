@@ -54,7 +54,7 @@ function off_error = simulate_ptp_gaussian(asym_delay_std, verbose)
         
         % Step master and slave nodes
         [master, master_msgs] = master.step(sim_time);
-        [slave, slave_msgs] = slave.step(sim_time, master.clock.f);
+        [slave, slave_msgs] = slave.step(sim_time);
         
         % Pre-calculate delay once per iteration
         delay = delay_a + randn * asym_delay_std;
