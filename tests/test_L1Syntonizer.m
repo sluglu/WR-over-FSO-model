@@ -15,7 +15,8 @@ params_master = struct(...
     'sigma_jitter', 100 ...
 );
 np_master = NoiseProfile(params_master);
-clk_master = MasterClock(f0, t0, np_master);
+master_clock = MasterClock(f0, t0, np_master);
+master = MasterNode(master_clock, MasterFSM());
 
 params_slave = struct(...
     'delta_f0', 1000, ...
@@ -24,7 +25,8 @@ params_slave = struct(...
     'sigma_jitter', 5000 ...
 );
 np_slave = NoiseProfile(params_slave);
-clk_slave = SlaveClock(f0, t0, np_slave);
+slave_clock = SlaveClock(f0, t0, np_slave);
+slave = SlaveNode(slave_clock, SlaveFSM());
 
 %% BUFFERS
 t_vec = (0:N-1) * dt + t0;
@@ -41,23 +43,23 @@ f_error = zeros(1, N);
 %% SIMULATION LOOP
 for i = 1:N
     % phase
-    phi_master(i) = clk_master.phi;
-    phi_slave(i) = clk_slave.phi;
-    phi_error(i) = clk_slave.phi - clk_master.phi;
+    phi_master(i) = master.get_phi();
+    phi_slave(i) = slave.get_phi();
+    phi_error(i) = slave.get_phi() - master.get_phi();
 
     % frequency
-    f_master(i) = clk_master.f;
-    f_slave(i) = clk_slave.f;
-    f_error(i) = clk_slave.f - clk_master.f;
+    f_master(i) = master.get_freq();
+    f_slave(i) = slave.get_freq();
+    f_error(i) = slave.get_freq() - master.get_freq();
 
     % syntonization
     if i > N/2
-        clk_slave = clk_slave.syntonize(clk_master.f);
+        slave = slave.syntonize(master.get_freq());
     end
 
     % Advance clocks
-    clk_master = clk_master.advance(dt);
-    clk_slave = clk_slave.advance(dt);
+    master = master.advance_time(dt);
+    slave = slave.advance_time(dt);
 end
 
 %% PLOTS

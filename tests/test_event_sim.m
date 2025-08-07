@@ -57,7 +57,7 @@ while sim_time < sim_duration
     [slave, slave_msgs] = slave.step(sim_time);
 
     % Check if slave just completed a sync
-    if slave.fsm.just_synced
+    if slave.just_synced()
         sync_event_times(end+1) = sim_time;
     end
 
@@ -92,13 +92,12 @@ while sim_time < sim_duration
     end
 
     % Log data
-    slave_freq_log(i) = slave.clock.f;
-    ptp_delay_log(i) = slave.fsm.last_delay;
-    ptp_offset_log(i) = slave.fsm.last_offset;
+    slave_freq_log(i) = slave.get_freq();
+    [ptp_offset_log(i), ptp_delay_log(i)] = slave.get_ptp_estimate();
     
     % Calculate real offset between clocks
-    master_time = master.clock.phi / (2*pi*f0);
-    slave_time = slave.clock.phi / (2*pi*f0);
+    master_time = master.get_time();
+    slave_time = slave.get_time();
     real_offset(i) = slave_time - master_time;
     
     % Determine next simulation time
@@ -112,7 +111,7 @@ while sim_time < sim_duration
     i = i + 1;
 end
 
-%% Calculate errors (exclude initial transient period) TODO : fix convergence detection
+%% Calculate errors (exclude initial transient period)
 convergence_threshold = 1e-9;
 
 first_sync_idx = find(~isnan(ptp_offset_log), 1);

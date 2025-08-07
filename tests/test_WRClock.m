@@ -18,7 +18,10 @@ params_noisy = struct(...
 np_noisy = NoiseProfile(params_noisy);
 
 clk_noisy = SlaveClock(f0, t0, np_noisy);
-clk_ideal = MasterClock();
+clk_ideal = MasterClock(f0, t0, NoiseProfile());
+
+master = MasterNode(clk_ideal, MasterFSM());
+slave = SlaveNode(clk_noisy, SlaveFSM());
 
 %% BUFFERS
 t_vec = (0:N-1)*dt + t0;
@@ -31,17 +34,17 @@ df_vec = zeros(1, N);
 
 %% SIMULATION LOOP
 for i = 1:N
-    phi_ideal(i) = clk_ideal.phi;
-    phi_noisy(i) = clk_noisy.phi;
-    phi_error(i) = clk_noisy.phi - clk_ideal.phi;
+    phi_ideal(i) = master.get_phi();
+    phi_noisy(i) = slave.get_phi();
+    phi_error(i) = slave.get_phi() - master.get_phi();
 
-    df_vec(i) = clk_noisy.f - clk_ideal.f; 
-    eta_vec(i) = clk_noisy.noise_profile.eta;
-    t_accum(i) = clk_noisy.noise_profile.t_accum;
+    df_vec(i) = slave.get_freq() - master.get_freq(); 
+    eta_vec(i) = slave.get_noise_profile().eta;
+    t_accum(i) = slave.get_noise_profile().t_accum;
 
     % Advance clocks
-    clk_noisy = clk_noisy.advance(dt);
-    clk_ideal = clk_ideal.advance(dt);
+    slave = slave.advance_time(dt);
+    master = master.advance_time(dt);
 end
 
 %% PLOTS
