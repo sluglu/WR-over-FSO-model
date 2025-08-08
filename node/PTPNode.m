@@ -15,11 +15,7 @@ classdef PTPNode
             end
         end
 
-        function [obj, msgs] = step(obj, sim_time)
-            ts = obj.get_time();
-
-            % Advance clock to current simulation time
-            dt = sim_time - ts;
+        function [obj, msgs] = step(obj, dt)
             obj = obj.advance_time(dt);
 
             ts = obj.get_time();
@@ -28,16 +24,8 @@ classdef PTPNode
             [obj.fsm, msgs] = obj.fsm.step(ts);
         end
 
-        function obj = receive(obj, msg, sim_time)
+        function obj = receive(obj, msg)
             ts = obj.get_time();
-
-            % Advance clock to message reception time
-            dt = sim_time - ts;
-            obj = obj.advance_time(dt);
-
-            ts = obj.get_time();
-
-            % Pass message to FSM
             obj.fsm = obj.fsm.receive(msg, ts);
         end
         

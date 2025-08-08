@@ -17,6 +17,8 @@ verbose = false;
 min_msg_interval = 1e-6;   % Minimum time between message processed in same cyle (e.g. sync and followup) [s]
 master_noise_profile = NoiseProfile(struct('delta_f0', 0, 'alpha', 0, 'sigma_rw', 0, 'sigma_jitter', 0));
 slave_noise_profile = NoiseProfile(struct('delta_f0', 0, 'alpha', 0, 'sigma_rw', 0, 'sigma_jitter', 0));
+offset_correction = false;
+syntonization = false;
 
 %% Scenario Parameters
 scenarios = {
@@ -30,7 +32,8 @@ scenarios = {
 sim_params = struct('dt_ptp', dt_ptp, 'dt_orbital', dt_orbital, 'sim_duration', sim_duration, 'min_los_duration', min_los_duration);
 
 ptp_params = struct('f0', f0, 'sync_interval', sync_interval, 'min_msg_interval', min_msg_interval, 'verbose', verbose, ...
-                   'master_noise_profile', master_noise_profile, 'slave_noise_profile', slave_noise_profile);
+                   'master_noise_profile', master_noise_profile, 'slave_noise_profile', slave_noise_profile, ...
+                   'offset_correction', offset_correction, 'syntonization', syntonization);
 
 scenario_idx = 1; % Select scenario to simulate
 scenario = scenarios(scenario_idx, :);

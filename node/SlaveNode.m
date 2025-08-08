@@ -19,10 +19,8 @@ classdef SlaveNode < PTPNode
         end
 
         function obj = offset_correction(obj)
-            % Apply offset correction only once per sync cycle
-            if obj.fsm.synced
+            if obj.just_synced
                 obj.clock = obj.clock.correct_offset(obj.fsm.last_offset);
-                obj.fsm.synced = false;  % Reset sync flag after correction
             end
         end
 

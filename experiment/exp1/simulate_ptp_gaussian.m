@@ -51,10 +51,11 @@ function off_error = simulate_ptp_gaussian(asym_delay_std, verbose)
     
     while sim_time < sim_duration && i <= max_steps
         times(i) = sim_time;
+        actual_dt = times(max(i,1)) - times(max(i-1,1));
         
         % Step master and slave nodes
-        [master, master_msgs] = master.step(sim_time);
-        [slave, slave_msgs] = slave.step(sim_time);
+        [master, master_msgs] = master.step(actual_dt);
+        [slave, slave_msgs] = slave.step(actual_dt);
         
         % Pre-calculate delay once per iteration
         delay = delay_a + randn * asym_delay_std;
@@ -98,9 +99,9 @@ function off_error = simulate_ptp_gaussian(asym_delay_std, verbose)
             % Process deliveries
             for j = find(to_deliver)
                 if strcmp(msg_queue{j, 1}, 'master')
-                    master = master.receive(msg_queue{j, 2}, msg_queue{j, 3});
+                    master = master.receive(msg_queue{j, 2});
                 else
-                    slave = slave.receive(msg_queue{j, 2}, msg_queue{j, 3});
+                    slave = slave.receive(msg_queue{j, 2});
                 end
             end
             

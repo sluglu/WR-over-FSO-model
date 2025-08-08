@@ -12,6 +12,8 @@ function [results] = simulate_ptp_orbital(sim_params, ptp_params, scenario)
     min_msg_interval = ptp_params.min_msg_interval;
     master_noise_profile = ptp_params.master_noise_profile;
     slave_noise_profile = ptp_params.slave_noise_profile;
+    offset_correction = ptp_params.offset_correction;
+    syntonization = ptp_params.syntonization;
 
     % Extract orbital scenario parameters
     r1_val = scenario(2); r2_val = scenario(3);
@@ -78,7 +80,8 @@ function [results] = simulate_ptp_orbital(sim_params, ptp_params, scenario)
     
     while sim_time < total_duration && i <= max_steps
         times(i) = sim_time;
-        
+        actual_dt = times(max(i,1)) - times(max(i-1,1));
+
         % Determine LOS status
         los_idx = find(tspan <= sim_time, 1, 'last');
         if isempty(los_idx) 
@@ -100,8 +103,19 @@ function [results] = simulate_ptp_orbital(sim_params, ptp_params, scenario)
             backward_propagation_delays(i) = compute_propagation_delay(r2, r1, sim_time, backward_propagation_delays(max(i-1,1)));
 
             % PTP operation during LOS
-            [master, master_msgs] = master.step(sim_time);
-            [slave, slave_msgs] = slave.step(sim_time);
+            [master, master_msgs] = master.step(actual_dt);
+
+            if syntonization
+                slave = slave.syntonize(master.get_freq());
+            end
+
+            if offset_correction
+                slave = slave.offset_correction();
+            end
+            
+            [slave, slave_msgs] = slave.step(actual_dt);
+
+            
             
             % Enqueue messages with propagation delay
             for j = 1:length(master_msgs)
@@ -147,9 +161,9 @@ function [results] = simulate_ptp_orbital(sim_params, ptp_params, scenario)
                 
                 for j = find(to_deliver)
                     if strcmp(msg_queue{j, 1}, 'master')
-                        master = master.receive(msg_queue{j, 2}, msg_queue{j, 3});
+                        master = master.receive(msg_queue{j, 2});
                     else
-                        slave = slave.receive(msg_queue{j, 2}, msg_queue{j, 3});
+                        slave = slave.receive(msg_queue{j, 2});
                     end
                 end
                 
