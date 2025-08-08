@@ -69,9 +69,6 @@ function plot_PTP_orbital_scenario(results)
     % Plot 4-6: Clock synchronization performance
     subplot(2,3,[4,6]);
     hold on;
-    % LOS background area (no plot data, just visual)
-    area(results.tspan/60, results.los_flags * max(results.ptp_offset), 'FaceColor', [0.8 0.8 0.8], 'FaceAlpha', 0.3, 'EdgeColor', 'none', 'DisplayName', 'LOS Intervals');
-    
     % Clock offset plots
     plot(results.times/60, results.real_offset, 'r-', 'LineWidth', 1.5, 'DisplayName', 'True Offset');
     

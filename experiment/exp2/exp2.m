@@ -19,6 +19,8 @@ master_noise_profile = NoiseProfile(struct('delta_f0', 0, 'alpha', 0, 'sigma_rw'
 slave_noise_profile = NoiseProfile(struct('delta_f0', 0, 'alpha', 0, 'sigma_rw', 0, 'sigma_jitter', 0));
 offset_correction = false;
 syntonization = false;
+t0 = 2;
+initial_time_offset = 10;
 
 %% Scenario Parameters
 scenarios = {
@@ -33,7 +35,8 @@ sim_params = struct('dt_ptp', dt_ptp, 'dt_orbital', dt_orbital, 'sim_duration', 
 
 ptp_params = struct('f0', f0, 'sync_interval', sync_interval, 'min_msg_interval', min_msg_interval, 'verbose', verbose, ...
                    'master_noise_profile', master_noise_profile, 'slave_noise_profile', slave_noise_profile, ...
-                   'offset_correction', offset_correction, 'syntonization', syntonization);
+                   'offset_correction', offset_correction, 'syntonization', syntonization, 't0', t0, ...
+                   'initial_time_offset', initial_time_offset);
 
 scenario_idx = 1; % Select scenario to simulate
 scenario = scenarios(scenario_idx, :);

@@ -14,6 +14,8 @@ function [results] = simulate_ptp_orbital(sim_params, ptp_params, scenario)
     slave_noise_profile = ptp_params.slave_noise_profile;
     offset_correction = ptp_params.offset_correction;
     syntonization = ptp_params.syntonization;
+    t0 = ptp_params.t0;
+    initial_time_offset = ptp_params.initial_time_offset;
 
     % Extract orbital scenario parameters
     r1_val = scenario(2); r2_val = scenario(3);
@@ -25,8 +27,8 @@ function [results] = simulate_ptp_orbital(sim_params, ptp_params, scenario)
     params2 = struct('r', r2_val, 'i', i2, 'theta0', th2, 'RAAN', omega2);
     
     % Initialize PTP components
-    clock_master = MasterClock(f0, 0, master_noise_profile);
-    clock_slave = SlaveClock(f0, 0, slave_noise_profile);
+    clock_master = MasterClock(f0, t0, master_noise_profile);
+    clock_slave = SlaveClock(f0, t0 + initial_time_offset, slave_noise_profile);
     
     master = MasterNode(clock_master, MasterFSM(sync_interval, verbose));
     slave = SlaveNode(clock_slave, SlaveFSM(verbose));
@@ -74,7 +76,7 @@ function [results] = simulate_ptp_orbital(sim_params, ptp_params, scenario)
     processed_los_duration = 0;
     
     % Simulation loop
-    sim_time = 0;
+    sim_time = t0;
     i = 1;
     tic;
     
