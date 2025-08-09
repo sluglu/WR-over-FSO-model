@@ -6,6 +6,8 @@ classdef NoiseProfile
         sigma_jitter % High-frequency jitter std dev
         eta = 0;        % random walk state
         t_accum = 0;    % time accumulator (for alpha term)
+        timestamp_resolution = 0; % number of cycles of resolution for timestamps
+        timestamp_jitter_std = 0;
 
     end
 
@@ -16,6 +18,10 @@ classdef NoiseProfile
                 obj.alpha        = params.alpha;
                 obj.sigma_rw     = params.sigma_rw;
                 obj.sigma_jitter = params.sigma_jitter;
+                if isfield(params,'timestamp_resolution')
+                    obj.timestamp_resolution = params.timestamp_resolution;
+                    obj.timestamp_jitter_std = params.timestamp_jitter_std;
+                end
             else
                 obj.delta_f0     = 0;
                 obj.alpha        = 0;

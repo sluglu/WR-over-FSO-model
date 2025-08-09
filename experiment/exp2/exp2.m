@@ -15,10 +15,14 @@ f0 = 125e6;                % Reference frequency [Hz]
 sync_interval = 0.5;       % PTP sync interval [s]
 t0 = 0;
 initial_time_offset = 0;
-master_noise_profile = NoiseProfile(struct('delta_f0', 0, 'alpha', 0, 'sigma_rw', 0, 'sigma_jitter', 0));
-slave_noise_profile = NoiseProfile(struct('delta_f0', 0, 'alpha', 0, 'sigma_rw', 0, 'sigma_jitter', 0));
+master_noise_profile = NoiseProfile(struct( ...
+    'delta_f0', 0, 'alpha', 0, 'sigma_rw', 0, 'sigma_jitter', 0, ...
+    'timestamp_resolution', 0, 'timestamp_jitter_std', 0));
+slave_noise_profile = NoiseProfile(struct( ...
+    'delta_f0', 0, 'alpha', 0, 'sigma_rw', 0, 'sigma_jitter', 0, ...
+    'timestamp_resolution', 0, 'timestamp_jitter_std', 0));
 offset_correction = false;
-syntonization = false;
+syntonization = false; 
 min_msg_interval = 1e-6;   % Minimum time between message processed in same cyle (e.g. sync and followup) [s]
 verbose = false;
 

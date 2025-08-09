@@ -19,7 +19,7 @@ classdef SlaveNode < PTPNode
         end
 
         function obj = offset_correction(obj)
-            if obj.just_synced
+            if obj.just_synced()
                 obj.clock = obj.clock.correct_offset(obj.fsm.last_offset);
             end
         end
