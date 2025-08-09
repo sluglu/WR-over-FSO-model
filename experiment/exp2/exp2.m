@@ -13,14 +13,14 @@ min_los_duration = 1;      % Minimum LOS duration to simulate PTP [s]
 %% PTP Parameters
 f0 = 125e6;                % Reference frequency [Hz]
 sync_interval = 0.5;       % PTP sync interval [s]
-verbose = false;
-min_msg_interval = 1e-6;   % Minimum time between message processed in same cyle (e.g. sync and followup) [s]
+t0 = 0;
+initial_time_offset = 0;
 master_noise_profile = NoiseProfile(struct('delta_f0', 0, 'alpha', 0, 'sigma_rw', 0, 'sigma_jitter', 0));
 slave_noise_profile = NoiseProfile(struct('delta_f0', 0, 'alpha', 0, 'sigma_rw', 0, 'sigma_jitter', 0));
 offset_correction = false;
 syntonization = false;
-t0 = 2;
-initial_time_offset = 10;
+min_msg_interval = 1e-6;   % Minimum time between message processed in same cyle (e.g. sync and followup) [s]
+verbose = false;
 
 %% Scenario Parameters
 scenarios = {
@@ -30,7 +30,9 @@ scenarios = {
     "Polar Orbit (counter-rotating)",       rE+800e3, rE+800e3, 90*deg, -90*deg,     0,         0,       0,       0;
 };
 
-%% Pack parameters
+scenario_idx = 1; % Select scenario to simulate
+
+%% Packing parameters
 sim_params = struct('dt_ptp', dt_ptp, 'dt_orbital', dt_orbital, 'sim_duration', sim_duration, 'min_los_duration', min_los_duration);
 
 ptp_params = struct('f0', f0, 'sync_interval', sync_interval, 'min_msg_interval', min_msg_interval, 'verbose', verbose, ...
@@ -38,7 +40,6 @@ ptp_params = struct('f0', f0, 'sync_interval', sync_interval, 'min_msg_interval'
                    'offset_correction', offset_correction, 'syntonization', syntonization, 't0', t0, ...
                    'initial_time_offset', initial_time_offset);
 
-scenario_idx = 1; % Select scenario to simulate
 scenario = scenarios(scenario_idx, :);
 save_filename = sprintf('experiment/exp2/results/exp2_PTP_orbital_sim_%s.mat', strrep(scenario{1}, ' ', '_'));
 
