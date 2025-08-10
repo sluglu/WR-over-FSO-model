@@ -41,6 +41,7 @@ function [los_intervals, los_flags] = compute_los_intervals(r1, r2, tspan, dt)
     % Detect continuous LOS intervals
     los_intervals = [];
     in_los = false;
+    t_start = NaN;
     for k = 1:length(times_compute)
         if los_flags_compute(k) && ~in_los
             t_start = times_compute(k);

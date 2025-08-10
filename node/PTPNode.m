@@ -1,20 +1,10 @@
-classdef PTPNode
-    properties (Access = protected)
-        clock WRClock
-        fsm PTPFSM
+classdef (Abstract) PTPNode
+    properties (Abstract)
+        clock
+        fsm
     end
     
     methods
-        function obj = PTPNode(clock, fsm, varargin)
-            if nargin > 0
-                obj.clock = clock;
-                obj.fsm = fsm;
-            else
-                obj.clock = WRClock();
-                obj.fsm = PTPFSM();
-            end
-        end
-
         function [obj, msgs] = step(obj, dt)
             obj = obj.advance_time(dt);
             ts = obj.get_timestamp();

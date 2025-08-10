@@ -18,10 +18,10 @@ function [results] = simulate_ptp_orbital(sim_params, ptp_params, scenario)
     initial_time_offset = ptp_params.initial_time_offset;
 
     % Extract orbital scenario parameters
-    r1_val = scenario(2); r2_val = scenario(3);
-    i1 = scenario(4);     i2 = scenario(5);
-    th1 = scenario(6);    th2 = scenario(7);
-    omega1 = scenario(8); omega2 = scenario(9);
+    r1_val = scenario{2}; r2_val = scenario{3};
+    i1 = scenario{4};     i2 = scenario{5};
+    th1 = scenario{6};    th2 = scenario{7};
+    omega1 = scenario{8}; omega2 = scenario{9};
     
     params1 = struct('r', r1_val, 'i', i1, 'theta0', th1, 'RAAN', omega1);
     params2 = struct('r', r2_val, 'i', i2, 'theta0', th2, 'RAAN', omega2);
@@ -51,7 +51,7 @@ function [results] = simulate_ptp_orbital(sim_params, ptp_params, scenario)
         error('No LOS intervals meet minimum duration requirement of %.1f seconds', min_los_duration);
     end
     
-    fprintf('Found %d valid LOS intervals (>= %.1f s duration)\n', size(valid_intervals,1), min_los_duration);
+    fprintf('Found %.0f valid LOS intervals (>= %.1f s duration)\n', size(valid_intervals,1), min_los_duration);
 
     % Pre-allocate arrays for entire simulation
     total_duration = sim_duration * 3600;

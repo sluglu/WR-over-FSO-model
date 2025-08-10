@@ -13,7 +13,7 @@ Components implemented :
 TODO : 
 
 - compute doppler function
-- test for timestamp resolution and and jitter
+- test for timestamp resolution and and jitter or just write a test script for everything ?
 
 the sytem is modeled as perfect (white rabbit work perfectly and in this case how PTP react): 
 - Perfect L1 syntonization (slave perfectly recover incoming frequency)

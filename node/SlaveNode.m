@@ -1,10 +1,17 @@
 classdef SlaveNode < PTPNode
+    properties
+        clock
+        fsm
+    end
     methods
         function obj = SlaveNode(clock, fsm)
             if nargin >= 2
                 % Validate that fsm is actually a SlaveFSM
                 if ~isa(fsm, 'SlaveFSM')
                     error('SlaveNode requires a SlaveFSM object, got %s', class(fsm));
+                end
+                if ~isa(clock, 'SlaveClock')
+                    error('MasterNode requires a SlaveClock object, got %s', class(clock));
                 end
                 obj.clock = clock;
                 obj.fsm = fsm;

@@ -12,17 +12,25 @@ min_los_duration = 1;      % Minimum LOS duration to simulate PTP [s]
 
 %% PTP Parameters
 f0 = 125e6;                % Reference frequency [Hz]
-sync_interval = 0.5;       % PTP sync interval [s]
+sync_interval = 1;       % PTP sync interval [s]
 t0 = 0;
-initial_time_offset = 0;
+initial_time_offset = 10;
 master_noise_profile = NoiseProfile(struct( ...
-    'delta_f0', 0, 'alpha', 0, 'sigma_rw', 0, 'sigma_jitter', 0, ...
-    'timestamp_resolution', 0, 'timestamp_jitter_std', 0));
+    'delta_f0', 0, ...
+    'alpha', 0, ...
+    'sigma_rw', 0, ...
+    'sigma_jitter', 0, ...
+    'timestamp_resolution', 1, ...
+    'timestamp_jitter_std', 0));
 slave_noise_profile = NoiseProfile(struct( ...
-    'delta_f0', 0, 'alpha', 0, 'sigma_rw', 0, 'sigma_jitter', 0, ...
-    'timestamp_resolution', 0, 'timestamp_jitter_std', 0));
+    'delta_f0', 0, ...
+    'alpha', 0, ...
+    'sigma_rw', 0, ...
+    'sigma_jitter', 0, ...
+    'timestamp_resolution', 1, ...
+    'timestamp_jitter_std', 0));
 offset_correction = false;
-syntonization = false; 
+syntonization = false;  % Currently perfect, no doppler shift added
 min_msg_interval = 1e-6;   % Minimum time between message processed in same cyle (e.g. sync and followup) [s]
 verbose = false;
 
@@ -35,6 +43,10 @@ scenarios = {
 };
 
 scenario_idx = 1; % Select scenario to simulate
+
+
+
+
 
 %% Packing parameters
 sim_params = struct('dt_ptp', dt_ptp, 'dt_orbital', dt_orbital, 'sim_duration', sim_duration, 'min_los_duration', min_los_duration);
@@ -53,13 +65,13 @@ results = simulate_ptp_orbital(sim_params, ptp_params, scenario);
 save(save_filename, "-fromstruct",results);
 fprintf('\nResults saved to %s\n', save_filename);
 
-% % Run simulation (all scenarios)
+% Run simulation (all scenarios)
 % parfor i = 1:size(scenarios, 1)
 %     scenario_idx = i; % Select scenario to simulate
 %     scenario = scenarios(scenario_idx, :);
 %     fprintf('Simulating scenario: %s\n', scenario{1});
 %     results = simulate_ptp_orbital(sim_params, ptp_params, scenario);
-%     save_filename = sprintf('results/exp2_PTP_orbital_sim_%s.mat', strrep(scenario{1}, ' ', '_'));
+%     save_filename = sprintf('experiment/exp2/results/exp2_PTP_orbital_sim_%s.mat', strrep(scenario{1}, ' ', '_'));
 %     save(save_filename, "-fromstruct", results);
 %     fprintf('\nResults saved to %s\n', save_filename);
 % end

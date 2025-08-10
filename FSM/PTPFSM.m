@@ -1,19 +1,10 @@
-classdef PTPFSM
+classdef (Abstract) PTPFSM
     properties
         msg_queue
         verbose
     end
 
     methods
-        function obj = PTPFSM(verbose)
-            obj.msg_queue = {};
-            if nargin > 0
-                obj.verbose = verbose;
-            else
-                obj.verbose = true;
-            end
-        end
-
         function print_msg(obj, msg, ts)
             % Display base info
             fprintf('[%s] Received message at ts = %.9e | type = %s', ...
