@@ -11,7 +11,7 @@ function plot_PTP_orbital_scenario(results)
     figure('Position', [100, 100, 1400, 800]);
     
     % Plot 1: 3D Orbital trajectories with LOS links
-    subplot(2,3,1);
+    subplot(3,3,1);
     hold on;
     plot3(pos1(1,:), pos1(2,:), pos1(3,:), '-', 'Color', [1 0 0], 'LineWidth', 1.2, 'DisplayName', 'Satellite 1');
     plot3(pos2(1,:), pos2(2,:), pos2(3,:), '-', 'Color', [0 0 1], 'LineWidth', 1.2, 'DisplayName', 'Satellite 2');
@@ -38,7 +38,7 @@ function plot_PTP_orbital_scenario(results)
     hold off;
     
     % Plot 2: LOS intervals overview
-    subplot(2,3,2);
+    subplot(3,3,2);
     area(results.tspan/60, results.los_flags, 'FaceColor', [0.8 0.8 0.8], 'FaceAlpha', 0.5, 'DisplayName', 'LOS Available');
     hold on;
     for i = 1:size(results.los_intervals,1)
@@ -52,7 +52,7 @@ function plot_PTP_orbital_scenario(results)
     hold off;
     
     % Plot 3: Propagation delays and PTP delay estimates
-    subplot(2,3,3);
+    subplot(3,3,3);
     % remove times (time already stored in fwd and bwd prop vector) 
     plot(results.times/60, results.forward_propagation_delays, 'r', 'DisplayName', 'forward Propagation Delay');
     hold on;
@@ -67,7 +67,7 @@ function plot_PTP_orbital_scenario(results)
     grid on;
     
     % Plot 4-6: Clock synchronization performance
-    subplot(2,3,[4,6]);
+    subplot(3,3,[4,6]);
     hold on;
     % Clock offset plots
     plot(results.times/60, results.real_offset, 'r-', 'LineWidth', 1.5, 'DisplayName', 'True Offset');
@@ -77,6 +77,19 @@ function plot_PTP_orbital_scenario(results)
     ylabel('Clock Offset [s]');
     xlabel('Time [min]');
     title('Clock Synchronization Performance Over Time');
+    legend('show', 'Location', 'best');
+    grid on;
+    hold off;
+
+    % Plot 7-10: Clock syntonization performance
+    subplot(3,3,[7,9]);
+    hold on;
+    % Clock freq offset plots
+    plot(results.times/60, results.real_freq_shift, 'r-', 'LineWidth', 1.5, 'DisplayName', 'True Frequency Offset');
+   
+    ylabel('Clock Frequency Offset [Hz]');
+    xlabel('Time [min]');
+    title('Clock Syntonization Performance Over Time');
     legend('show', 'Location', 'best');
     grid on;
     hold off;

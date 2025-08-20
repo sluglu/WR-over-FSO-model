@@ -8,12 +8,10 @@ Components implemented :
 - PTP FSM module
 - experiment#1 : PTP offset error / asymetric delay STD (fast changing delay and delay asymetry)
 - orbit model
-- experiment#2 : PTP + orbital scenario (all parameters should be exposed)
+- experiment#2 : PTP + orbital scenario (all parameters exposed)
 
 TODO : 
 
-- compute doppler function
-- test for timestamp resolution and and jitter or just write a test script for everything ?
 
 the sytem is modeled as perfect (white rabbit work perfectly and in this case how PTP react): 
 - Perfect L1 syntonization (slave perfectly recover incoming frequency)

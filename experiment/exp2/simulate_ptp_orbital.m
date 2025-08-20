@@ -61,6 +61,7 @@ function [results] = simulate_ptp_orbital(sim_params, ptp_params, scenario)
     ptp_offset_log = nan(max_steps, 1);
     ptp_delay_log = nan(max_steps, 1);
     real_offset = nan(max_steps, 1);
+    real_freq_shift = nan(max_steps, 1);
     forward_propagation_delays = nan(max_steps, 1);
     backward_propagation_delays = nan(max_steps, 1);
     los_status = zeros(max_steps, 1);
@@ -94,10 +95,11 @@ function [results] = simulate_ptp_orbital(sim_params, ptp_params, scenario)
         end
         los_status(i) = los_flags(los_idx);
         
-        % Calculate real clock offset
+        % Calculate real clock offset 
         master_time = master.get_time();
         slave_time = slave.get_time();
         real_offset(i) = slave_time - master_time;
+        real_freq_shift(i) = slave.get_freq() - master.get_freq();
         
         if los_status(i)
             % Calculate propagation delay
@@ -108,7 +110,8 @@ function [results] = simulate_ptp_orbital(sim_params, ptp_params, scenario)
             [master, master_msgs] = master.step(actual_dt);
 
             if syntonization
-                slave = slave.syntonize(master.get_freq());
+                shifted_freq = compute_doppler_shift(r1, r2, sim_time, master.get_freq());
+                slave = slave.syntonize(shifted_freq);
             end
 
             if offset_correction
@@ -231,6 +234,7 @@ function [results] = simulate_ptp_orbital(sim_params, ptp_params, scenario)
     results.ptp_offset = ptp_offset_log;
     results.ptp_delay = ptp_delay_log;
     results.real_offset = real_offset;
+    results.real_freq_shift = real_freq_shift;
     results.forward_propagation_delays = forward_propagation_delays;
     results.backward_propagation_delays = backward_propagation_delays;
     results.los_status = los_status;
