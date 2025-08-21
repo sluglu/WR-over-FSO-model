@@ -36,10 +36,11 @@ verbose = false;
 
 %% Scenario Parameters
 scenarios = {
-    "StarLink V1 like with syntonization (doppler shifted)",                     rE+550e3, rE+550e3, 53*deg,  53*deg,     0,         0,       0,       70*deg;
+    "StarLink V1 like",                     rE+550e3, rE+550e3, 53*deg,  53*deg,     0,         0,       0,       70*deg;
     "Opposite Inclination",                 rE+550e3, rE+550e3, 45*deg, -45*deg,     0,         0,       0,       0;
     "Walker Delta (shared plane)",          rE+1200e3,rE+1200e3,55*deg,  55*deg,     0,         0,       0,      36*deg;
     "Polar Orbit (counter-rotating)",       rE+800e3, rE+800e3, 90*deg, -90*deg,     0,         0,       0,       0;
+    "StarLink V1 like with syntonization (doppler shifted)",                     rE+550e3, rE+550e3, 53*deg,  53*deg,     0,
 };
 
 scenario_idx = 1; % Select scenario to simulate
