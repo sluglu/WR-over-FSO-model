@@ -76,7 +76,7 @@ function plot_PTP_orbital_scenario(results)
     
     ylabel('Clock Offset [s]');
     xlabel('Time [min]');
-    title('Clock Synchronization Performance Over Time');
+    title('Clock Offset and PTP Offset Estimate');
     legend('show', 'Location', 'best');
     grid on;
     hold off;

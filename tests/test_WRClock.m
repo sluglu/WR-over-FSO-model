@@ -6,16 +6,12 @@ t0 = 0;
 dt = 1e-10;
 N = 5000;
 
-% Noisy profile
-params_noisy = struct(...
-    'delta_f0', 50, ...
-    'alpha', 100, ...
-    'sigma_rw', 500, ...
-    'sigma_jitter', 20 ...
+ocxo_params = struct(...
+    'power_law_coeffs', [1e-25, 5e-24, 1e-22, 2e-20, 5e-21] ...  % Typical OCXO values
 );
 
 %% INIT CLOCKS
-np_noisy = NoiseProfile(params_noisy);
+np_noisy = NoiseProfile(ocxo_params);
 
 clk_noisy = SlaveClock(f0, t0, np_noisy);
 clk_ideal = MasterClock(f0, t0, NoiseProfile());
@@ -39,8 +35,6 @@ for i = 1:N
     phi_error(i) = slave.get_phi() - master.get_phi();
 
     df_vec(i) = slave.get_freq() - master.get_freq(); 
-    eta_vec(i) = slave.get_noise_profile().eta;
-    t_accum(i) = slave.get_noise_profile().t_accum;
 
     % Advance clocks
     slave = slave.advance_time(dt);
@@ -68,19 +62,6 @@ plot(t_vec, df_vec, 'r');
 xlabel('Time'); ylabel('Δf (Hz)');
 title('Frequency Deviation of Noisy Clock');
 
-% --- 4. Cumulative jitter
-subplot(2,3,4);
-plot(t_vec, eta_vec);
-xlabel('Time'); ylabel('\eta (Hz)');
-title('Cumulative Jitter (Random Walk) Component');
-
-
-% --- 5. Drift component
-subplot(2,3,5);
-plot(t_vec,  params_noisy.alpha * t_accum);
-xlabel('Time'); ylabel('\alpha * t (Hz)');
-title('Drift Component');
-
 % --- 6. Signal
 
 phi_ideal_adj = phi_ideal - phi_ideal(1);
@@ -94,7 +75,7 @@ samples_per_cycle = round(1 / (f0 * dt));
 zoom_idx = 1000 : 1000 + cycles_to_show * samples_per_cycle;
 zoom_idx = zoom_idx(zoom_idx <= N);  % Prevent overflow
 
-subplot(2,3,6);
+subplot(2,3,[4,6]);
 plot(t_vec(zoom_idx), ideal_signal(zoom_idx), 'b--', ...
      t_vec(zoom_idx), noisy_signal(zoom_idx), 'r');
 xlabel('Time (s)'); ylabel('Amplitude');

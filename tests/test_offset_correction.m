@@ -10,7 +10,12 @@ initial_offset = 1.0;  % Initial time offset [s]
 t0 = 0;
 
 %% INITIALIZE CLOCKS WITH OFFSET
-params_noisy = struct('delta_f0', 0, 'alpha', 0, 'sigma_rw', 0, 'sigma_jitter', 0);
+params_noisy = struct( ...
+    'delta_f0', 0, ...
+    'alpha', 0, ...
+    'power_law_coeffs', [1e-25, 5e-24, 1e-22, 2e-20, 5e-21], ...  % Typical OCXO values
+    'timestamp_resolution', 1 ...
+    );
 np = NoiseProfile(params_noisy);
 
 clock_master = MasterClock(f0, t0, NoiseProfile());

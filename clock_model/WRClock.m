@@ -4,6 +4,8 @@ classdef (Abstract) WRClock
         f             % Current frequency (Hz)
         phi           % Current phase (radians)
         noise_profile NoiseProfile % NoiseProfile object
+
+        t_accum = 0;
     end
 
     methods
@@ -17,13 +19,19 @@ classdef (Abstract) WRClock
                 t0 = 0;
             end
             obj.phi = 0;
-            obj.f = obj.f0;
+            obj.f = obj.f0 + noise_profile.delta_f0;
             obj = obj.advance(t0);
         end
 
         function obj = advance(obj, dt)
-            [df, obj.noise_profile] = obj.noise_profile.frequencyNoise(dt);
-            obj.f = obj.f + df;
+            obj.t_accum = obj.t_accum + dt;
+             % get fractional frequency noise
+            [dy, obj.noise_profile] = obj.noise_profile.generatePowerLawNoise(dt);
+            df_stochastic = obj.f0 * dy;
+            f_deterministic = obj.f0 + obj.noise_profile.delta_f0 + obj.noise_profile.alpha * obj.t_accum;
+            % set current oscillator frequency
+            obj.f = f_deterministic + df_stochastic;
+
             obj.phi = obj.phi + 2 * pi * obj.f * dt;
         end
 
@@ -33,34 +41,31 @@ classdef (Abstract) WRClock
 
         function ts = get_timestamp(obj)
             % Get the true (ideal) continuous time in seconds
-            true_ts = obj.get_time();
+            ts = obj.get_time();
     
             % Handle infinite resolution (0 means infinite precision)
             if obj.noise_profile.timestamp_resolution == 0
-                % No quantization, just add jitter noise
-                ts = true_ts + obj.noise_profile.timestamp_jitter_std * randn();
                 return;
             end
    
             tick = 1 / obj.f;
             % Calculate quantization step in seconds
             % resolution = 1 -> quant step = 1 tick
-            % resolution < 1 -> quant step = multiple ticks (coarser)
-            % resolution > 1 -> quant step = fraction of tick (finer)
+            % resolution > 1 -> quant step = multiple ticks (coarser)
+            % resolution < 1 -> quant step = fraction of tick (finer)
             quant_step = tick / obj.noise_profile.timestamp_resolution;
     
             % Quantize true time to nearest multiple of quant_step
-            ts = round(true_ts / quant_step) * quant_step;
-    
-            % Add jitter noise (Gaussian)
-            if obj.noise_profile.timestamp_jitter_std > 0
-                ts = ts + obj.noise_profile.timestamp_jitter_std * randn();
-            end
+            ts = round(ts / quant_step) * quant_step;
         end
 
-        function obj = reset(obj)
+        function obj = reset(obj, t0)
             obj.noise_profile.reset()
-            obj.f = obj.f0;
+            obj.phi = 0;
+            obj.f = obj.f0 + obj.noise_profile.delta_f0;
+            if nargin > 1
+                obj = obj.advance(t0);
+            end
         end
     end
 end
