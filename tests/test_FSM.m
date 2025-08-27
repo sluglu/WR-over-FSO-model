@@ -22,8 +22,8 @@ params_noisy = struct(...
 np_noisy = NoiseProfile(params_noisy);
 np_ideal = NoiseProfile();
 
-clock_master = MasterClock(f0, t0, np_ideal);
-clock_slave  = SlaveClock(f0, t0, np_noisy);
+clock_master = WRClock(f0, t0, np_ideal);
+clock_slave  = WRClock(f0, t0, np_noisy);
 
 %% Create nodes
 master = MasterNode(clock_master, MasterFSM(sync_interval, true));
@@ -127,20 +127,15 @@ title('Clock Time Evolution');
 legend('Master Clock', 'Slave Clock', 'Location', 'best');
 grid on;
 
-% Plot 2: Real Time Offset
-subplot(2,3,2);
+% Plot 2,3: PTP Measured Offset
+subplot(2,3,[2,3]);
+plot(times, ptp_offset_log, 'g-', 'LineWidth', 1.5);
+hold on;
 plot(times, real_offset, 'r-', 'LineWidth', 1.5);
 xlabel('Time (s)');
-ylabel('Time Offset (s)');
-title('Real Clock Offset (Slave - Master)');
-grid on;
-
-% Plot 3: PTP Measured Offset
-subplot(2,3,3);
-plot(times, ptp_offset_log, 'g-', 'LineWidth', 1.5);
-xlabel('Time (s)');
-ylabel('PTP Offset (s)');
-title('PTP Measured Offset');
+ylabel('Offset (s)');
+title('PTP vs Real Offset');
+legend("PTP Estimation", "Real");
 grid on;
 
 % Plot 4: Frequency Error

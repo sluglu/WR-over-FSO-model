@@ -2,32 +2,32 @@
 clear; clc;
 
 %% Power Law Noise Parameters
-% Define h coefficients according to IEEE Std 1139-2008
-% h_coeffs = [h_{-2}, h_{-1}, h_0, h_1, h_2]
-
-% Example 1: High-Performance OCXO
+% Example 1: High-Performance OCXO (100Mhz OX-249)
+slave_f0 = 100e6;
 ocxo_params = struct(...
-    'power_law_coeffs', [8e-24, 1e-27, 1e-28, 4e-32, 2e-34]);
+    'delta_f0', (rand() * 2 * 50) - 50, ...
+    'alpha', (rand() * 2 * 1.58e-6) - 1.58e-6, ...
+    'power_law_coeffs', [0, 4.62e-23, 1.58e-25, 0, 1.0e-32]);
 
-% Example 2: Rubidium Atomic Clock
-rubidium_params = struct(...
-    'power_law_coeffs', [2e-28, 5e-29, 2e-28, 1e-31, 1e-33]);
+% Example 2: Rubidium Atomic Clock (10 MHz CSAC-SA45.)
+master_f0 = 10e6;
+rubidium_params = struct( ...
+        'delta_f0', (rand() * 2 * 5e-11) - 5e-11, ...
+        'alpha', (rand() * 2 * 3.15e-9) - 3.15e-9, ...
+        'power_law_coeffs', [0, 0, 1.8e-19, 0, 2.0e-28]);
 
 %% Create Clocks with Power Law Noise
-f0 = 125e6;  % 125 MHz reference
-t0 = 0;
-
 % Create master with high-quality rubidium clock
-master_clock = MasterClock(f0, t0, NoiseProfile(rubidium_params));
+master_clock = WRClock(master_f0, 0, NoiseProfile(rubidium_params));
 master = MasterNode(master_clock, MasterFSM(1, false));
 
 % Create slave with OCXO
-slave_clock = SlaveClock(f0, t0, NoiseProfile(ocxo_params));
+slave_clock = WRClock(slave_f0, 0, NoiseProfile(ocxo_params));
 slave = SlaveNode(slave_clock, SlaveFSM(false));
 
 %% Simulation Parameters
-dt = 0.001;  % 1 ms time step
-sim_duration = 60;  % 1 hour simulation
+dt = 0.1;  % 1 ms time step
+sim_duration = 3600;  % 1 hour simulation
 N = ceil(sim_duration / dt);
 
 % Pre-allocate arrays
@@ -60,11 +60,11 @@ figure('Position', [100, 100, 1200, 800]);
 
 % Plot 1: Frequency vs Time
 subplot(3,2,1);
-plot(times, master_freq, 'b-', 'LineWidth', 1);
+plot(times, master_freq/master_f0, 'b-', 'LineWidth', 1);
 hold on;
-plot(times, slave_freq, 'r-', 'LineWidth', 1);
+plot(times, slave_freq/slave_f0, 'r-', 'LineWidth', 1);
 xlabel('Time [s]');
-ylabel('Frequency [Hz]');
+ylabel('Frequency [Hz/Hz]');
 title('Clock Frequency Evolution');
 legend('Master (Rb)', 'Slave (OCXO)', 'Location', 'best');
 grid on;
@@ -104,22 +104,41 @@ grid on;
 [psd_master, freq_axis] = pwelch(master_freq - mean(master_freq), [], [], [], 1/dt);
 [psd_slave, ~] = pwelch(slave_freq - mean(slave_freq), [], [], [], 1/dt);
 
+% subplot(3,2,4);
+% loglog(freq_axis, psd_master, 'b-', 'LineWidth', 1);
+% hold on;
+% loglog(freq_axis, psd_slave, 'r-', 'LineWidth', 1);
+% xlabel('Frequency [Hz]');
+% ylabel('Power Spectral Density [Hz²/Hz]');
+% title('Frequency Noise PSD');
+% legend('Master (Rb)', 'Slave (OCXO)', 'Location', 'best');
+% grid on;
+
+% Plot 4: Empirical Phase Noise from Simulation Data
 subplot(3,2,4);
-loglog(freq_axis, psd_master, 'b-', 'LineWidth', 1);
+valid_indices = 2:length(freq_axis);
+f = freq_axis(valid_indices); % The valid frequency offsets
+psd_f_master = psd_master(valid_indices);
+psd_f_slave = psd_slave(valid_indices);
+psd_phi_master = psd_f_master ./ (f.^2);
+psd_phi_slave = psd_f_slave ./ (f.^2);
+L_f_dB_master = 10 * log10(0.5 * psd_phi_master);
+L_f_dB_slave = 10 * log10(0.5 * psd_phi_slave);
+semilogx(f, L_f_dB_master, 'b-', 'LineWidth', 1);
 hold on;
-loglog(freq_axis, psd_slave, 'r-', 'LineWidth', 1);
-xlabel('Frequency [Hz]');
-ylabel('Power Spectral Density [Hz²/Hz]');
-title('Frequency Noise PSD');
+semilogx(f, L_f_dB_slave, 'r-', 'LineWidth', 1);
+xlabel('Frequency Offset f [Hz]');
+ylabel('Phase Noise L(f) [dBc/Hz]');
+title('Empirical Phase Noise from Simulation'); % Clarify it's from the data
 legend('Master (Rb)', 'Slave (OCXO)', 'Location', 'best');
 grid on;
 
 % Plot 5: Histogram of Frequency Deviations  
 subplot(3,2,5);
-histogram((master_freq - f0)/f0 * 1e9, 50, 'Normalization', 'probability', ...
+histogram((master_freq - master_f0)/master_f0 * 1e9, 50, 'Normalization', 'probability', ...
           'FaceAlpha', 0.7, 'FaceColor', 'blue');
 hold on;
-histogram((slave_freq - f0)/f0 * 1e9, 50, 'Normalization', 'probability', ...
+histogram((slave_freq - slave_f0)/slave_f0 * 1e9, 50, 'Normalization', 'probability', ...
           'FaceAlpha', 0.7, 'FaceColor', 'red');
 xlabel('Fractional Frequency Deviation [ppb]');
 ylabel('Probability');
@@ -128,8 +147,8 @@ legend('Master (Rb)', 'Slave (OCXO)', 'Location', 'best');
 grid on;
 
 % Plot 6: Phase Difference Evolution
-master_phase = cumsum((master_freq - f0) * dt);
-slave_phase = cumsum((slave_freq - f0) * dt);
+master_phase = cumsum((master_freq - master_f0) * dt);
+slave_phase = cumsum((slave_freq - slave_f0) * dt);
 phase_diff = slave_phase - master_phase;
 
 subplot(3,2,6);
@@ -146,12 +165,12 @@ fprintf('\n=== SIMULATION RESULTS ===\n');
 fprintf('Master Clock (Rubidium):\n');
 fprintf('  Mean frequency: %.9f Hz\n', mean(master_freq));
 fprintf('  Std deviation: %.3e Hz\n', std(master_freq));
-fprintf('  Fractional stability: %.3e\n', std(master_freq)/f0);
+fprintf('  Fractional stability: %.3e\n', std(master_freq)/master_f0);
 
 fprintf('\nSlave Clock (OCXO):\n');
 fprintf('  Mean frequency: %.9f Hz\n', mean(slave_freq));
 fprintf('  Std deviation: %.3e Hz\n', std(slave_freq));
-fprintf('  Fractional stability: %.3e\n', std(slave_freq)/f0);
+fprintf('  Fractional stability: %.3e\n', std(slave_freq)/slave_f0);
 
 fprintf('\nFrequency Difference:\n');
 fprintf('  Mean difference: %.3e Hz\n', mean(freq_difference));

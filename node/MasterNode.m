@@ -10,9 +10,6 @@ classdef MasterNode < PTPNode
                 if ~isa(fsm, 'MasterFSM')
                     error('MasterNode requires a MasterFSM object, got %s', class(fsm));
                 end
-                if ~isa(clock, 'MasterClock')
-                    error('MasterNode requires a MasterClock object, got %s', class(clock));
-                end
                 obj.clock = clock;
                 obj.fsm = fsm;
             else

@@ -1,4 +1,4 @@
-classdef (Abstract) WRClock
+classdef WRClock
     properties
         f0            % Nominal frequency (Hz)
         f             % Current frequency (Hz)
@@ -25,7 +25,6 @@ classdef (Abstract) WRClock
         function obj = advance(obj, dt)
             obj.t_accum = obj.t_accum + dt;
             [dy, obj.noise_profile] = obj.noise_profile.generatePowerLawNoise(dt);
-            % set current oscillator frequency
             df = obj.noise_profile.delta_f0 + obj.noise_profile.alpha * obj.t_accum + dy * obj.f0;
             obj.f = obj.f0 + df;
             obj.phi = obj.phi + 2 * pi * obj.f * dt;
