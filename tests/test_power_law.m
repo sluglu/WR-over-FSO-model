@@ -6,28 +6,12 @@ clear; clc;
 % h_coeffs = [h_{-2}, h_{-1}, h_0, h_1, h_2]
 
 % Example 1: High-Performance OCXO
-% Should have a flicker floor around 1e-12, with drift starting to dominate > 100s.
 ocxo_params = struct(...
-    'power_law_coeffs', [ ...
-        5.0e-27, ...  % h_{-2}: Corresponds to a realistic drift/aging rate
-        2.0e-24, ...  % h_{-1}: Flicker floor, sigma_y ~1.6e-12
-        1.5e-25, ...  % h_{0}: White FM, dominates at short tau
-        6.0e-26, ...  % h_{1}: Flicker PM
-        1.5e-27  ...  % h_{2}: White PM
-    ] ...
-);
+    'power_law_coeffs', [8e-24, 1e-27, 1e-28, 4e-32, 2e-34]);
 
 % Example 2: Rubidium Atomic Clock
-% Much better long-term stability (smaller h_{-2}, h_{-1}), but potentially noisier at very short tau.
 rubidium_params = struct(...
-    'power_law_coeffs', [ ...
-        2.0e-30, ...  % h_{-2}: Very low random walk, excellent long-term stability
-        8.0e-29, ...  % h_{-1}: Very low flicker floor, sigma_y ~ 1e-14
-        2.0e-25, ...  % h_{0}: White FM, similar to OCXO
-        6.0e-23, ...  % h_{1}: Flicker PM
-        2.0e-21  ...  % h_{2}: White PM, often higher in atomic standards
-    ] ...
-);
+    'power_law_coeffs', [2e-28, 5e-29, 2e-28, 1e-31, 1e-33]);
 
 %% Create Clocks with Power Law Noise
 f0 = 125e6;  % 125 MHz reference
@@ -76,19 +60,19 @@ figure('Position', [100, 100, 1200, 800]);
 
 % Plot 1: Frequency vs Time
 subplot(3,2,1);
-plot(times/3600, (master_freq - f0)/f0 * 1e9, 'b-', 'LineWidth', 1);
+plot(times, master_freq, 'b-', 'LineWidth', 1);
 hold on;
-plot(times/3600, (slave_freq - f0)/f0 * 1e9, 'r-', 'LineWidth', 1);
-xlabel('Time [hours]');
-ylabel('Fractional Frequency [ppb]');
+plot(times, slave_freq, 'r-', 'LineWidth', 1);
+xlabel('Time [s]');
+ylabel('Frequency [Hz]');
 title('Clock Frequency Evolution');
 legend('Master (Rb)', 'Slave (OCXO)', 'Location', 'best');
 grid on;
 
 % Plot 2: Frequency Difference
 subplot(3,2,2);
-plot(times/3600, freq_difference, 'g-', 'LineWidth', 1);
-xlabel('Time [hours]');
+plot(times, freq_difference, 'g-', 'LineWidth', 1);
+xlabel('Time [s]');
 ylabel('Frequency Difference [Hz]');
 title('Frequency Difference (Slave - Master)');
 grid on;
@@ -173,31 +157,3 @@ fprintf('\nFrequency Difference:\n');
 fprintf('  Mean difference: %.3e Hz\n', mean(freq_difference));
 fprintf('  Std deviation: %.3e Hz\n', std(freq_difference));
 fprintf('  Max deviation: %.3e Hz\n', max(abs(freq_difference)));
-
-% %% Compare with Legacy Model
-% % For comparison, create equivalent legacy parameters
-% legacy_params = struct(...
-%     'delta_f0', 0, ...
-%     'alpha', 1e-9, ...        % Small linear drift
-%     'sigma_rw', 1e-6, ...     % Random walk
-%     'sigma_jitter', 5e-6 ...  % White noise
-% );
-% 
-% legacy_clock = SlaveClock(f0, t0, NoiseProfile(legacy_params));
-% legacy_node = SlaveNode(legacy_clock, SlaveFSM(false));
-% 
-% legacy_freq = zeros(1, min(1000, N));  % Shorter simulation for comparison
-% for i = 1:length(legacy_freq)
-%     legacy_freq(i) = legacy_node.get_freq();
-%     legacy_node = legacy_node.advance_time(dt);
-% end
-% 
-% figure('Position', [100, 300, 800, 400]);
-% plot((0:length(legacy_freq)-1)*dt/60, (legacy_freq - f0)/f0 * 1e9, 'k--', 'LineWidth', 2);
-% hold on;
-% plot(times(1:length(legacy_freq))/60, (slave_freq(1:length(legacy_freq)) - f0)/f0 * 1e9, 'r-', 'LineWidth', 1);
-% xlabel('Time [minutes]');
-% ylabel('Fractional Frequency [ppb]');
-% title('Power Law vs Legacy Noise Model Comparison');
-% legend('Legacy Model', 'Power Law Model', 'Location', 'best');
-% grid on;

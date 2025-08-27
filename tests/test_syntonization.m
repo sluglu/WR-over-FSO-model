@@ -3,14 +3,14 @@ clear; clc;
 %% PARAMETERS
 f0 = 125e6;
 t0 = 0;
-dt = 1e-6;
+dt = 1e-2;
 N = 5000;
 
 %% INIT CLOCKS AND L1_syntonizer
 params_master = struct(...
      'delta_f0', 0, ...
-    'alpha', 1, ...
-    'power_law_coeffs', [1e-25, 5e-24, 1e-22, 2e-20, 5e-21] ...  % Typical OCXO values
+    'alpha', 0, ...
+    'power_law_coeffs', [2e-28, 5e-29, 2e-28, 1e-31, 1e-33] ...  % Typical OCXO values
 );
 np_master = NoiseProfile(params_master);
 master_clock = MasterClock(f0, t0, np_master);
@@ -19,7 +19,7 @@ master = MasterNode(master_clock, MasterFSM());
 params_slave = struct(...
     'delta_f0', 10, ...
     'alpha', 5e-10, ...
-    'power_law_coeffs', [1e-25, 5e-24, 1e-22, 2e-20, 5e-21] ...  % Typical OCXO values
+    'power_law_coeffs', [8e-24, 1e-27, 1e-28, 4e-32, 2e-34] ...  % Typical OCXO values
 );
 np_slave = NoiseProfile(params_slave);
 slave_clock = SlaveClock(f0, t0, np_slave);

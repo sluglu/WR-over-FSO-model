@@ -4,7 +4,6 @@ classdef (Abstract) WRClock
         f             % Current frequency (Hz)
         phi           % Current phase (radians)
         noise_profile NoiseProfile % NoiseProfile object
-
         t_accum = 0;
     end
 
@@ -25,13 +24,10 @@ classdef (Abstract) WRClock
 
         function obj = advance(obj, dt)
             obj.t_accum = obj.t_accum + dt;
-             % get fractional frequency noise
             [dy, obj.noise_profile] = obj.noise_profile.generatePowerLawNoise(dt);
-            df_stochastic = obj.f0 * dy;
-            f_deterministic = obj.f0 + obj.noise_profile.delta_f0 + obj.noise_profile.alpha * obj.t_accum;
             % set current oscillator frequency
-            obj.f = f_deterministic + df_stochastic;
-
+            df = obj.noise_profile.delta_f0 + obj.noise_profile.alpha * obj.t_accum + dy * obj.f0;
+            obj.f = obj.f0 + df;
             obj.phi = obj.phi + 2 * pi * obj.f * dt;
         end
 
@@ -60,7 +56,7 @@ classdef (Abstract) WRClock
         end
 
         function obj = reset(obj, t0)
-            obj.noise_profile.reset()
+            obj.noise_profile.reset();
             obj.phi = 0;
             obj.f = obj.f0 + obj.noise_profile.delta_f0;
             if nargin > 1

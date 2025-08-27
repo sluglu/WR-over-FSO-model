@@ -3,11 +3,11 @@ clear; clc;
 %% PARAMETERS
 f0 = 125e6;
 t0 = 0;
-dt = 1e-10;
+dt = 1e-2;
 N = 5000;
 
 ocxo_params = struct(...
-    'power_law_coeffs', [1e-25, 5e-24, 1e-22, 2e-20, 5e-21] ...  % Typical OCXO values
+    'power_law_coeffs', [8e-24, 1e-27, 1e-28, 4e-32, 2e-34] ...  % Typical OCXO values
 );
 
 %% INIT CLOCKS

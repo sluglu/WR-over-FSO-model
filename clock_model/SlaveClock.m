@@ -9,10 +9,11 @@ classdef SlaveClock < WRClock
             obj@WRClock(args{:});
         end
 
-        function obj = syntonize(obj, f_new)
-            obj.noise_profile = obj.noise_profile.reset();
-            obj.f = f_new;
-        end
+        % function obj = syntonize(obj, f_new)
+        %     obj.noise_profile = obj.noise_profile.reset();
+        %     obj.t_accum = 0;
+        %     obj.f = f_new;
+        % end
 
         function obj = correct_offset(obj, time_offset)
             phase_offset = time_offset * (2*pi*obj.f0);
