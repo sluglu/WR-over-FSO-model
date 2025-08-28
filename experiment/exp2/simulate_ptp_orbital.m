@@ -12,8 +12,6 @@ function [results] = simulate_ptp_orbital(sim_params, ptp_params, scenario)
     min_msg_interval = ptp_params.min_msg_interval;
     master_noise_profile = ptp_params.master_noise_profile;
     slave_noise_profile = ptp_params.slave_noise_profile;
-    offset_correction = ptp_params.offset_correction;
-    syntonization = ptp_params.syntonization;
     t0 = ptp_params.t0;
     initial_time_offset = ptp_params.initial_time_offset;
 
@@ -27,8 +25,8 @@ function [results] = simulate_ptp_orbital(sim_params, ptp_params, scenario)
     params2 = struct('r', r2_val, 'i', i2, 'theta0', th2, 'RAAN', omega2);
     
     % Initialize PTP components
-    clock_master = MasterClock(f0, t0, master_noise_profile);
-    clock_slave = SlaveClock(f0, t0 + initial_time_offset, slave_noise_profile);
+    clock_master = WRClock(f0, t0, master_noise_profile);
+    clock_slave = WRClock(f0, t0 + initial_time_offset, slave_noise_profile);
     
     master = MasterNode(clock_master, MasterFSM(sync_interval, verbose));
     slave = SlaveNode(clock_slave, SlaveFSM(verbose));
@@ -107,17 +105,7 @@ function [results] = simulate_ptp_orbital(sim_params, ptp_params, scenario)
             backward_propagation_delays(i) = compute_propagation_delay(r2, r1, sim_time, backward_propagation_delays(max(i-1,1)));
 
             % PTP operation during LOS
-            [master, master_msgs] = master.step(actual_dt);
-
-            if syntonization
-                shifted_freq = compute_doppler_shift(r1, r2, sim_time, master.get_freq());
-                slave = slave.syntonize(shifted_freq);
-            end
-
-            if offset_correction
-                slave = slave.offset_correction();
-            end
-            
+            [master, master_msgs] = master.step(actual_dt);       
             [slave, slave_msgs] = slave.step(actual_dt);
 
             
