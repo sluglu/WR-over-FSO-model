@@ -12,7 +12,7 @@ sim_duration = 2;          % Total simulation duration [hours]
 min_los_duration = 1;      % Minimum LOS duration to simulate PTP [s]
 
 % PTP Parameters
-f0 = 125e6;                % Reference frequency [Hz]
+f0 = 100e6;                % Reference frequency [Hz]
 sync_interval = 1;       % PTP sync interval [s]
 t0 = 0;
 initial_time_offset = 0;
@@ -28,7 +28,7 @@ ocxo_params = struct(...
 
 % Rubidium Atomic Clock (10 MHz CSAC-SA45)
 rubidium_params = struct( ...
-        'delta_f0', (rand() * 2 * 5e-11) - 5e-11, ...
+        'delta_f0', (rand() * 2 * 5e-4) - 5e-4, ...
         'alpha', (rand() * 2 * 3.15e-9) - 3.15e-9, ...
         'power_law_coeffs', [0, 0, 1.8e-19, 0, 2.0e-28]);
 
@@ -84,7 +84,7 @@ parfor i = 1:size(scenarios, 1)
 end
 
 %% Plot Results
-scenario_idx = 1; % Select scenario to simulate
+scenario_idx = 2; % Select scenario to simulate
 %exp_name = "Perfect Hardware";
 exp_name = "two OCXO perfect timestamp";
 

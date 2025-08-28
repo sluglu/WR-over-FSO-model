@@ -130,48 +130,6 @@ classdef NoiseProfile
             obj.power_law_coeffs = h_coeffs;
             obj = obj.initialize_power_law_filters();
         end
-
-        function sigma_y = allan_deviation_estimate(obj, tau)
-            % Estimate Allan deviation for a given averaging time tau.
-            % Based on the standard formulas from IEEE Std 1139-2008.
-            % Assumes h_coeffs define the PSD of fractional frequency noise, S_y(f).
-
-            sigma_y_squared = 0;
-            h = obj.power_law_coeffs; % Use a shorter name for clarity
-
-            % h_{-2}: Random Walk FM
-            if h(1) ~= 0
-                sigma_y_squared = sigma_y_squared + ( (2*pi)^2 * h(1) * tau / 6 );
-            end
-
-            % h_{-1}: Flicker FM
-            if h(2) ~= 0
-                sigma_y_squared = sigma_y_squared + ( h(2) * 2 * log(2) );
-            end
-
-            % h_0: White FM
-            if h(3) ~= 0
-                sigma_y_squared = sigma_y_squared + ( h(3) / (2 * tau) );
-            end
-
-            % h_1: Flicker PM
-            if h(4) ~= 0
-                % This formula requires the system's measurement bandwidth, f_h.
-                % We will assume a common simplification.
-                % The exact formula is complex: h(4) * (1.038 + 3*log(2*pi*f_h*tau)) / (4*pi^2*tau^2)
-                % Let's use the more common simplified form if f_h is not available.
-                % For now, we will use the dominant term for simplicity.
-                % NOTE: This is an approximation.
-                sigma_y_squared = sigma_y_squared + ( h(4) / (2 * (pi * tau)^2) * (1.038 + 3*log(2*pi*1e6*tau)) ); % Assumes 1MHz bandwidth f_h
-            end
-
-            % h_2: White PM
-            if h(5) ~= 0
-                sigma_y_squared = sigma_y_squared + ( 3 * h(5) / ( (2*pi*tau)^2 ) );
-            end
-
-            sigma_y = sqrt(sigma_y_squared);
-        end
     end
 end
 

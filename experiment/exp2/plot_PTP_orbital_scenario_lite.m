@@ -26,8 +26,8 @@ function plot_PTP_orbital_scenario_lite(results)
     % Format parameter strings with explicit labels
     deg = pi/180;
     rE = 6371e3;
-    s1_params_str = sprintf('S1: Altitude=%.0f km, Inclination=%.1f°, Anomaly=%.1f°, RAAN=%.1f°', alt1 - rE, inc1/deg, anom1/deg, raan1/deg);
-    s2_params_str = sprintf('S2: Altitude=%.0f km, Inclination=%.1f°, Anomaly=%.1f°, RAAN=%.1f°', alt2 - rE, inc2/deg, anom2/deg, raan2/deg);
+    s1_params_str = sprintf('S1: Altitude=%.0f km, Inclination=%.1f°, Anomaly=%.1f°, RAAN=%.1f°', (alt1 - rE)*1e-3, inc1/deg, anom1/deg, raan1/deg);
+    s2_params_str = sprintf('S2: Altitude=%.0f km, Inclination=%.1f°, Anomaly=%.1f°, RAAN=%.1f°', (alt2 - rE)*1e-3, inc2/deg, anom2/deg, raan2/deg);
     full_param_str = {s1_params_str, s2_params_str};
 
     % **UPDATED SECTION:** Add annotation textbox with a lowered vertical position
